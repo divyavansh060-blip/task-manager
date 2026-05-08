@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Saved Plans</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+margin:0;
+font-family:'Poppins',sans-serif;
+background:linear-gradient(135deg,#a18cd1,#fbc2eb);
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+padding:15px;
+}
+
+.box{
+background:white;
+padding:20px;
+width:100%;
+max-width:420px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
+}
+
+h2{text-align:center;color:#6a1b9a;}
+
+.plan{
+background:#f3e5f5;
+padding:10px;
+border-radius:10px;
+margin-top:10px;
+}
+
+.plan small{color:#555;}
+
+.actions{
+display:flex;
+gap:5px;
+margin-top:5px;
+}
+
+button{
+padding:6px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+font-size:12px;
+color:white;
+}
+
+.edit{background:#2196f3;}
+.delete{background:#f44336;}
+
+.top-btn{
+width:100%;
+margin-top:10px;
+padding:10px;
+border-radius:10px;
+background:linear-gradient(135deg,#ff9800,#f44336);
+}
+
+#analytics{
+margin-top:10px;
+padding:10px;
+background:#ede7f6;
+border-radius:10px;
+font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>📄 Saved Plans</h2>
+
+<div id="analytics"></div>
+
+<div id="planList"></div>
+
+<button class="top-btn" onclick="goBack()">⬅ Back</button>
+</div>
+
+<script>
+
+const task = localStorage.getItem("openTask");
+let key = "plans_" + task;
+
+/* GET DATA */
+function getPlans(){
+return JSON.parse(localStorage.getItem(key) || "[]");
+}
+
+/* SAVE DATA */
+function savePlans(data){
+localStorage.setItem(key, JSON.stringify(data));
+}
+
+/* LOAD PLANS */
+function loadPlans(){
+let arr = getPlans();
+let html = "";
+
+arr.forEach((p,i)=>{
+html += `
+<div class="plan">
+<b>${p.text}</b><br>
+<small>🕒 ${p.date}</small>
+
+<div class="actions">
+<button class="edit" onclick="editPlan(${i})">Edit</button>
+<button class="delete" onclick="deletePlan(${i})">Delete</button>
+</div>
+</div>
+`;
+});
+
+document.getElementById("planList").innerHTML =
+html || "No Plans Found ❌";
+
+updateAnalytics(arr);
+}
+
+/* EDIT */
+function editPlan(i){
+let arr = getPlans();
+let newText = prompt("Edit Plan", arr[i].text);
+
+if(newText){
+arr[i].text = newText;
+arr[i].date = new Date().toLocaleString();
+savePlans(arr);
+loadPlans();
+}
+}
+
+/* DELETE */
+function deletePlan(i){
+let arr = getPlans();
+if(confirm("Delete this plan?")){
+arr.splice(i,1);
+savePlans(arr);
+loadPlans();
+}
+}
+
+/* ANALYTICS */
+function updateAnalytics(arr){
+
+let total = arr.length;
+let today = 0;
+
+let todayDate = new Date().toLocaleDateString();
+
+arr.forEach(p=>{
+if(p.date.includes(todayDate)){
+today++;
+}
+});
+
+document.getElementById("analytics").innerHTML = `
+📊 Total Plans: ${total} <br>
+📅 Today's Plans: ${today}
+`;
+}
+
+/* BACK */
+function goBack(){
+window.location = "task.html";
+}
+
+/* INIT */
+loadPlans();
+
+</script>
+
+</body>
+</html>

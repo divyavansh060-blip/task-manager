@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Forgot Password</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+ margin:0;
+ min-height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ background:linear-gradient(135deg,#667eea,#764ba2);
+ font-family:Poppins;
+}
+
+.box{
+ background:white;
+ padding:30px;
+ border-radius:18px;
+ width:350px;
+ text-align:center;
+ box-shadow:0 15px 35px rgba(0,0,0,0.3);
+}
+
+h2{
+ color:#6a1b9a;
+ margin-bottom:10px;
+}
+
+p{
+ color:#555;
+ font-size:14px;
+}
+
+input{
+ width:100%;
+ padding:12px;
+ margin:15px 0;
+ border-radius:10px;
+ border:1px solid #ccc;
+ outline:none;
+}
+
+button{
+ width:100%;
+ padding:12px;
+ border:none;
+ border-radius:10px;
+ background:linear-gradient(135deg,#f7971e,#ffd200);
+ color:white;
+ font-weight:bold;
+ cursor:pointer;
+ font-size:15px;
+}
+
+button:hover{
+ opacity:0.9;
+}
+
+#msg{
+ margin-top:10px;
+ color:green;
+ font-size:14px;
+}
+.back{
+margin-top:10px;
+color:blue;
+cursor:pointer;
+text-align:center;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>🔐 Forgot Password</h2>
+<p>Enter your registered email to reset password</p>
+
+<input id="email" placeholder="Enter Email">
+
+<button onclick="reset()">Send Reset Link</button>
+
+<p id="msg"></p>
+<p class="back" onclick="location.href='index.html'">
+⬅ Back to Login
+</p>
+
+</div>
+
+<script>
+
+function reset(){
+
+ let email = document.getElementById("email").value.trim();
+ let msg = document.getElementById("msg");
+
+ let savedPass = localStorage.getItem(email+"_pass");
+
+ if(savedPass == null){
+   alert("Email not registered");
+   return;
+ }
+
+ localStorage.setItem("reset_email",email);
+
+ msg.style.color="green";
+ msg.innerText="Reset link sent (Demo)";
+
+ setTimeout(()=>{
+  location.href="newpassword.html";
+ },1500);
+
+}
+</script>
+</body>
+</html>

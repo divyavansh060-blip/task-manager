@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="theme-color" content="#6a1b9a">
+<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<title>Professional Task Management System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+*{box-sizing:border-box;font-family:Poppins}
+body{
+ min-height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ background:linear-gradient(135deg,#667eea,#764ba2);
+}
+body.dark{
+ background:#121212;
+}
+body.dark .box{
+ background:#1e1e1e;
+ color:#fff;
+}
+.task.overdue {
+ background: #ffcdd2 !important;
+ border-left: 5px solid red;
+}
+.box{
+  background:#fff;
+  width:100%;
+  max-width:420px;
+  padding:22px;
+  border-radius:18px;
+  box-shadow:0 15px 35px rgba(0,0,0,.3);
+  display:none;
+  animation:fadeSlide .35s ease;
+}
+.box.active{display:block}
+h2{text-align:center;color:#6a1b9a;margin-bottom:10px}
+h3{text-align:center;color:#444;margin:6px 0}
+input,textarea,button{
+ width:100%;
+ padding:10px;
+ margin:6px 0;
+ border-radius:8px;
+ border:1px solid #ccc;
+}
+button{
+ background:#6a1b9a;
+ color:#fff;
+ border:none;
+ font-weight:600;
+ cursor:pointer;
+ transition:.3s;
+}
+button:hover{transform:scale(1.05);opacity:.9}
+button.gray{background:#777}
+button.blue{background:#2196f3}
+button.orange{background:#ff9800}
+button.red{background:#e53935}
+.passbox button{width:60px}
+/* SMALL BUTTON STYLE */
+.small-btn{
+ width:auto !important;
+ padding:4px 8px !important;
+ font-size:11px !important;
+ margin-left:5px;
+ border-radius:6px;
+}
+.dashboard{
+ display:flex;
+ gap:10px;
+ margin:12px 0;
+}
+.card{
+ flex:1;
+ background:linear-gradient(135deg,#42a5f5,#7e57c2);
+ color:#fff;
+ padding:12px;
+ border-radius:14px;
+ text-align:center;
+ box-shadow:0 8px 15px rgba(0,0,0,0.2);
+}
+.task{
+ background:#f3f3f3;
+ padding:8px;
+ margin:6px 0;
+ border-radius:10px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ transition:.3s;
+}
+.task:hover{
+ background:#e1bee7;
+ transform:translateX(5px);
+}
+.task.done{text-decoration:line-through;opacity:.6}
+.time{font-size:11px;color:#666}
+.progress{
+ width:100%;
+ height:6px;
+ background:#ddd;
+ border-radius:6px;
+ margin-top:4px;
+ overflow:hidden;
+}
+.progress div{
+ height:100%;
+ background:#4caf50;
+}
+.notify{
+ background:#ffe082;
+ padding:8px;
+ border-radius:8px;
+ margin-bottom:8px;
+ font-size:13px;
+}
+@keyframes fadeSlide{
+ from{opacity:0;transform:translateY(20px)}
+ to{opacity:1;transform:translateY(0)}
+}
+.section-title{
+ margin-top:14px;
+ font-weight:600;
+ color:#6a1b9a;
+}
+.user-list{
+ margin-top:10px;
+ max-height:150px;
+ overflow:auto;
+ border:1px solid #ddd;
+ border-radius:10px;
+ padding:6px;
+}
+.passbox{
+ display:flex;
+ gap:6px;
+ align-items:center;
+ position:relative;
+}
+.passbox input{
+ flex:1;
+ padding-right:45px;
+}
+
+.eye{
+ position:absolute;
+ right:12px;
+ cursor:pointer;
+ font-size:18px;
+ user-select:none;
+}
+
+</style>
+</head>
+<body>
+<!-- ROLE -->
+<div class="box active" id="roleBox">
+<h2>Select Role</h2>
+<button onclick="selectRole('admin')">Admin</button>
+<button onclick="selectRole('user')">User</button>
+</div>
+
+<!-- AUTH -->
+<div class="box" id="authBox">
+<h2 id="authTitle">LOGIN</h2>
+<input id="name" placeholder="Name (Signup only)" style="display:none">
+<input id="userid" placeholder="User ID">
+<input id="email" placeholder="Email">
+<div class="passbox">
+<input id="pass" type="password" placeholder="Password">
+ <span class="eye" id="eyeBtn" onclick="togglePass()">👁</span>
+</div>
+<small id="err" style="color:red"></small>
+<button onclick="auth()">Continue</button>
+<button class="orange" onclick="forgotPassword()">Forgot Password?</button>
+<button class="gray" onclick="toggleMode()">Signup / Login</button>
+</div>
+
+<!-- ADMIN -->
+<div class="box" id="adminBox">
+  <div id="topBarAdmin" style="
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+">
+  <div style="display:flex;align-items:center;gap:8px">
+    <img id="topProfilePicAdmin" src="https://via.placeholder.com/40"
+      style="width:40px;height:40px;border-radius:50%;object-fit:cover">
+    
+    <div id="topProfileNameAdmin" style="font-weight:600"></div>
+  </div>
+</div>
+  <!-- PROFILE BOX -->
+<div id="profileBoxAdmin" style="display:none;margin-top:10px">
+  <h3>👤 Edit Profile</h3>
+
+  <img id="profilePicAdmin" src="https://via.placeholder.com/40"
+       style="width:80px;height:80px;border-radius:50%;object-fit:cover"><br>
+
+  <input type="file" id="uploadPicAdmin" accept="image/*">
+
+  <input id="profileNameAdmin" placeholder="Your Name">
+  <input id="profileEmailAdmin" placeholder="Your Email">
+
+  <button onclick="saveProfile()">Save Profile</button>
+</div>
+
+<button onclick="editProfile()">Edit Profile</button>
+<div id="adminNotify"></div>
+<h2>Admin Dashboard</h2>
+<button onclick="showLeaderboard()">🏆 Leaderboard</button>
+<div id="leaderboard"></div>
+<h3 id="adminName"></h3>
+<div class="dashboard">
+<div class="card">
+<h3 id="totalUsers">0</h3>
+<small>Total Users</small>
+</div>
+<div class="card">
+<h3 id="totalTasks">0</h3>
+<small>Total Tasks</small>
+</div>
+</div>
+<button class="blue" onclick="showAllUsers()">Show All Users</button>
+<div id="allUsersList" class="user-list"></div>
+<div class="section-title">Assign Task</div>
+<select id="taskUser"></select>
+<textarea id="taskText" placeholder="Task"></textarea>
+<select id="taskPriority">
+  <option value="Low">Low</option>
+  <option value="Medium">Medium</option>
+  <option value="High">High</option>
+</select>
+<input type="date" id="taskDeadline">
+<button onclick="addTask()">Add Task</button>
+<div class="section-title">Reports</div>
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div>
+<b>🟢 Online Users: <span id="onlineCount">0</span></b>
+  </div>
+</div>
+<button class="blue" onclick="openOverview()">User Tasks Overview</button>
+<button class="blue" onclick="openWeeklyReport()">📊 Weekly Analysis</button>
+<button onclick="exportToExcel()">Export to Excel</button>
+<div id="status" style="font-weight:600;margin-top:6px"></div>
+<button class="orange" onclick="resetAdminPassword()">Reset Admin Password</button>
+<button class="blue" onclick="openSettings()">Settings</button>
+<button class="gray" onclick="logout()">Logout</button>
+<button onclick="toggleDark()">Dark Mode</button>
+<button onclick="backupData()">Backup Data</button>
+</div>
+
+<!-- USER -->
+<div class="box" id="userBox">
+  <div id="topBarUser" style="
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+">
+<input type="text" id="searchUserTask" placeholder="Search tasks..." onkeyup="searchUserTasks()">
+  <div style="display:flex;align-items:center;gap:8px">
+    <img id="topProfilePicUser" src="https://via.placeholder.com/40"
+      style="width:40px;height:40px;border-radius:50%;object-fit:cover">
+    
+    <div id="topProfileNameUser" style="font-weight:600"></div>
+  </div>
+</div>
+  <!-- PROFILE BOX -->
+<div id="profileBoxUser" style="display:none;margin-top:10px">
+  <h3>👤 Edit Profile</h3>
+
+  <img id="profilePicUserBox" src="https://via.placeholder.com/40"
+       style="width:80px;height:80px;border-radius:50%;object-fit:cover"><br>
+
+  <input type="file" id="uploadPicUser" accept="image/*">
+
+  <input id="profileNameUser" placeholder="Your Name">
+  <input id="profileEmailUser" placeholder="Your Email">
+
+  <button onclick="saveProfile()">Save Profile</button>
+</div>
+
+<button onclick="editProfile()">Edit Profile</button>
+<h2>User Tasks</h2>
+<h3 id="userName"></h3>
+<div id="userNotify"></div>
+<div id="userTasks"></div>
+<button class="gray" onclick="logout()">Logout</button>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="box" id="settingsPage">
+<h2>Admin Settings</h2>
+<input id="newAdminEmail" placeholder="New Admin Email">
+<button class="blue" onclick="changeAdminEmail()">Change Email</button>
+<hr>
+<input type="password" id="oldPass" placeholder="Old Password">
+<input type="password" id="newPass" placeholder="New Password">
+<input type="password" id="confirmPass" placeholder="Confirm Password">
+<button class="orange" onclick="changeAdminPassword()">Change Password</button>
+<hr>
+<button class="gray" onclick="backToAdmin()">⬅ Back </button>
+</div>
+
+<!-- USER OVERVIEW PAGE -->
+<div class="box" id="overviewPage">
+<h2>User Task Overview</h2>
+<input type="text" id="searchUser" placeholder="Search by User ID..." onkeyup="renderOverview()">
+<input type="text" id="searchTask" placeholder="Search by Task..." onkeyup="searchTasks()">
+<select id="filterPriority" onchange="renderOverview()">
+  <option value="">All Priority</option>
+  <option value="High">High</option>
+  <option value="Medium">Medium</option>
+  <option value="Low">Low</option>
+</select>
+
+<select id="filterStatusWeekly" onchange="renderWeeklyReport()">
+  <option value="">All Status</option>
+  <option value="done">Completed</option>
+  <option value="pending">Pending</option>
+</select>
+<div id="adminTasks"></div>
+<button class="gray" onclick="backToAdmin()">⬅ Back to Dashboard</button>
+</div>
+
+<!-- WEEKLY REPORT PAGE -->
+<div class="box" id="weeklyPage">
+  <div style="text-align:center;margin-bottom:10px">
+  <b>📅 Weekly Report (Mon → Sun)</b>
+</div>
+<h2>📊 Weekly Analysis</h2>
+<input 
+  type="text" 
+  id="searchWeeklyUser" 
+  placeholder="Search by User ID..." 
+  onkeyup="renderWeeklyReport()"
+  style="margin-bottom:10px;padding:8px;width:100%;border-radius:8px;border:1px solid #ccc"
+/>
+
+<div id="weeklyData"></div>
+<button class="gray" onclick="backToAdmin()">⬅ Back to dashboard</button>
+<button class="blue" onclick="downloadWeeklyPDF()">📄 Download PDF</button>
+</div>
+
+<script>
+  let userNotificationWatcher = null;
+let userTaskWatcher = null;
+const adminBox = document.getElementById("adminBox");
+const userBox = document.getElementById("userBox");
+
+/* GET CURRENT USER KEY */
+function getCurrentUserKey(){
+  let c = JSON.parse(localStorage.current || "null");
+  if(!c) return null;
+  return c.role === "user" ? "user_" + c.userid : "ADMIN";
+}
+
+/* LOAD PROFILE */
+function loadProfile(){
+  let key = getCurrentUserKey();
+  if(!key) return;
+
+  let user = JSON.parse(localStorage.getItem(key) || "{}");
+
+  let el = getProfileElements();
+
+  if(!el.name) return;
+
+  el.name.value = user.name || "";
+  el.email.value = user.email || "";
+  el.pic.src = user.pic || "https://via.placeholder.com/80";
+
+  document.getElementById("userName").innerText =
+    "User : " + (user.name || "User");
+
+  updateTopProfile();
+}
+
+function updateTopProfile(){
+  let key = getCurrentUserKey();
+  if(!key) return;
+
+  let user = JSON.parse(localStorage.getItem(key) || "{}");
+
+  let pic = user.pic || "https://via.placeholder.com/40";
+  let name = user.name || "User";
+
+  let adminPic = document.getElementById("topProfilePicAdmin");
+  let adminName = document.getElementById("topProfileNameAdmin");
+
+  let userPic = document.getElementById("topProfilePicUser");
+  let userName = document.getElementById("topProfileNameUser");
+
+  if(adminPic) adminPic.src = pic;
+  if(adminName) adminName.innerText = name;
+
+  if(userPic) userPic.src = pic;
+  if(userName) userName.innerText = name;
+}
+
+
+function saveProfile(){
+  let key = getCurrentUserKey();
+  if(!key) return;
+
+  let el = getProfileElements();
+console.log("Profile Elements:", el);
+  // ✅ safety check
+  if(!el.name || !el.email || !el.pic){
+    alert("Profile elements not found");
+    return;
+  }
+
+  let user = JSON.parse(localStorage.getItem(key) || "{}");
+
+  user.name = el.name.value.trim();
+  user.email = el.email.value.trim();
+
+  if(!user.name){
+    alert("Name required");
+    return;
+  }
+  
+  if(el.pic.dataset.temp){
+    user.pic = el.pic.dataset.temp;
+  }
+
+  localStorage.setItem(key, JSON.stringify(user));
+
+let current = JSON.parse(localStorage.current || "{}");
+  current.name = user.name;
+  localStorage.current = JSON.stringify(current);
+
+  showToast("✅ Profile Updated", "success");
+
+  loadProfile();
+  renderUserTasks?.();
+  renderAdmin?.();
+  updateTopProfile();
+}
+
+document.addEventListener("keypress", function(e){
+  if(e.key === "Enter" && document.getElementById("authBox").classList.contains("active")){
+    auth();
+  }
+});
+
+function loadUserDropdown(){
+ let select = document.getElementById("taskUser");
+ select.innerHTML = "<option value=''>Select User</option>";
+
+ Object.keys(localStorage)
+ .filter(k=>{
+   if(!k.startsWith("user_")) return false;
+
+   try{
+     let u = JSON.parse(localStorage[k]);
+     return u && u.name;
+   }catch{
+     return false;
+   }
+ })
+ .forEach(k=>{
+   let userid = k.replace("user_","");
+   let u = JSON.parse(localStorage[k]);
+
+   select.innerHTML += `
+   <option value="${userid}">
+     ${u.name} (${userid})
+   </option>`;
+ });
+}
+function getProfileElements(){
+  let adminActive = document.getElementById("adminBox").classList.contains("active");
+  let userActive = document.getElementById("userBox").classList.contains("active");
+
+  if(adminActive){
+    return {
+      name: document.getElementById("profileNameAdmin"),
+      email: document.getElementById("profileEmailAdmin"),
+      pic: document.getElementById("profilePicAdmin")
+    };
+  }
+
+  if(userActive){
+    return {
+      name: document.getElementById("profileNameUser"),
+      email: document.getElementById("profileEmailUser"),
+      pic: document.getElementById("profilePicUserBox")
+    };
+  }
+
+  return { name:null, email:null, pic:null };
+}
+
+function setupUploadListeners(){
+  let adminUpload = document.getElementById("uploadPicAdmin");
+  let userUpload = document.getElementById("uploadPicUser");
+
+  if(adminUpload){
+    adminUpload.addEventListener("change", handleImageUpload);
+  }
+
+  if(userUpload){
+    userUpload.addEventListener("change", handleImageUpload);
+  }
+}
+
+function handleImageUpload(){
+  let file = this.files[0];
+  if(!file) return;
+
+  if(file.size > 1024 * 1024){
+    alert("Image too large! Max 1MB");
+    return;
+  }
+
+  let reader = new FileReader();
+  reader.onload = function(e){
+    let img = new Image();
+    img.src = e.target.result;
+
+    img.onload = function(){
+      let canvas = document.createElement("canvas");
+      let size = 150;
+      canvas.width = size;
+      canvas.height = size;
+
+      let ctx = canvas.getContext("2d");
+
+      let min = Math.min(img.width, img.height);
+      let sx = (img.width - min) / 2;
+      let sy = (img.height - min) / 2;
+
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+
+      let compressed = canvas.toDataURL("image/jpeg", 0.7);
+
+      let el = getProfileElements(); // ✅ define here
+      if(!el.pic){
+        alert("Profile image element not found");
+        return;
+      }
+
+      el.pic.src = compressed;
+      el.pic.dataset.temp = compressed;
+    };
+  };
+
+  reader.readAsDataURL(file);
+}
+function forgotPassword(){
+  let email = prompt("Enter your registered Email:");
+  if(!email) return;
+
+  email = email.toLowerCase().trim();
+
+  // ===== ADMIN RESET =====
+  if(role === "admin"){
+    let a = JSON.parse(localStorage.getItem("ADMIN"));
+
+    if(!a || a.email !== email){
+      alert("Admin email not found");
+      return;
+    }
+
+    let name = prompt("Enter Admin Name:");
+    if(a.name !== name){
+      alert("Name not match");
+      return;
+    }
+
+    let newPass = prompt("Enter New Password:");
+    if(!newPass || newPass.length < 4){
+      alert("Minimum 4 characters required");
+      return;
+    }
+
+    a.pass = hash(newPass);
+    localStorage.setItem("ADMIN", JSON.stringify(a));
+
+    alert("Admin password reset successful ✅");
+    return;
+  }
+
+  // ===== USER RESET =====
+  let foundUser = null;
+
+  Object.keys(localStorage)
+    .filter(k => k.startsWith("user_"))
+    .forEach(k=>{
+      let u = JSON.parse(localStorage[k] || "{}");
+      if(u.email === email){
+        foundUser = {key:k, data:u};
+      }
+    });
+
+  if(!foundUser){
+    alert("User not found");
+    return;
+  }
+
+ let userid = prompt("Enter your User ID:");
+if(foundUser.key !== "user_" + userid){
+  alert("User ID not match");
+  return;
+}
+
+  let newPass = prompt("Enter New Password:");
+  if(!newPass || newPass.length < 4){
+    alert("Minimum 4 characters required");
+    return;
+  }
+
+  foundUser.data.pass = hash(newPass);
+  localStorage.setItem(foundUser.key, JSON.stringify(foundUser.data));
+
+  alert("User password reset successful ✅");
+}
+
+  function updateOnlineCounter(){
+  const online = JSON.parse(localStorage.getItem("onlineUsers") || "[]");
+  document.getElementById("onlineCount").innerText = online.length;
+}
+  let liveWatcher=null;
+
+window.addEventListener("beforeunload",()=>{
+ clearInterval(liveWatcher);
+
+ let c = JSON.parse(localStorage.current || "null");
+ if(c && c.role==="user"){
+   let online = JSON.parse(localStorage.getItem("onlineUsers") || "[]");
+online = online.filter(e=>e!==c.email.toLowerCase());
+   localStorage.setItem("onlineUsers", JSON.stringify(online));
+ }
+});
+
+function getDeadlineColor(deadline){
+ if(!deadline) return "";
+ let today = new Date();
+ today.setHours(0,0,0,0); // remove time
+ let d = new Date(deadline);
+ d.setHours(0,0,0,0);
+ if(d < today) return "red";      // expired
+ if(d.getTime() === today.getTime()) return "orange"; // today
+ return "green"; 
+}
+
+function validEmail(email){
+ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+} 
+let role="",mode="login";
+const roleBox=document.getElementById("roleBox");
+const authBox=document.getElementById("authBox");
+const settingsPage=document.getElementById("settingsPage");
+
+const nameI=document.getElementById("name");
+const userIdI = document.getElementById("userid");
+const emailI=document.getElementById("email");
+const passI=document.getElementById("pass");
+const errI=document.getElementById("err");
+const authT=document.getElementById("authTitle");
+
+const adminName=document.getElementById("adminName");
+const totalUsers=document.getElementById("totalUsers");
+const totalTasks=document.getElementById("totalTasks");
+const taskUser=document.getElementById("taskUser");
+const taskText=document.getElementById("taskText");
+const taskDeadline=document.getElementById("taskDeadline");
+const adminTasks=document.getElementById("adminTasks");
+const status=document.getElementById("status");
+
+const userName=document.getElementById("userName");
+const userNotify=document.getElementById("userNotify");
+const userTasks=document.getElementById("userTasks");
+ 
+window.onload=function(){
+    Object.keys(localStorage)
+  .filter(k=>k.startsWith("task_"))
+  .forEach(k=>{
+    let tasks = JSON.parse(localStorage[k] || "[]");
+
+    tasks.forEach(t=>{
+      let d = new Date(t.time);
+      if(isNaN(d.getTime())) {
+        t.time = new Date().toISOString();
+      }
+    });
+
+    localStorage[k] = JSON.stringify(tasks);
+  });
+ if ("Notification" in window && Notification.permission !== "granted") {
+  Notification.requestPermission();
+}
+
+if(localStorage.getItem("darkMode")==="on"){
+ document.body.classList.add("dark");
+}
+ if(!localStorage.current) return;
+
+ let c;
+ try{
+  c = JSON.parse(localStorage.current);
+ }catch{
+  localStorage.removeItem("current");
+  show("roleBox");
+  return;
+ }
+
+ if(!c || !c.role){
+  localStorage.removeItem("current");
+  show("roleBox");
+  return;
+ }
+
+ if(c.role==="admin"){
+  if(!localStorage.getItem("ADMIN")){
+   localStorage.removeItem("current");
+   show("roleBox");
+   return;
+  }
+  loadAdmin();
+ }
+ else if(c.role==="user"){
+let userid=(c.userid||"").toLowerCase();
+if(!userid || !localStorage.getItem("user_"+userid)){
+   localStorage.removeItem("current");
+   show("roleBox");
+   return;
+  }
+  loadUser();
+ }
+setupUploadListeners();
+updateTopProfile();
+loadProfile();
+};
+function hash(str){
+  let h = 0;
+  for(let i=0;i<str.length;i++){
+    h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+  }
+  return h.toString();
+}
+function show(id){
+ document.querySelectorAll(".box").forEach(b=>b.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+}
+
+function selectRole(r){
+ role=r;mode="login";
+ authT.textContent="LOGIN";
+ nameI.style.display="none";
+ emailI.value=passI.value=nameI.value="";
+ passI.type="password";
+document.getElementById("eyeBtn").textContent="👁";
+ show("authBox");
+}
+
+function toggleMode(){
+ mode=mode==="login"?"signup":"login";
+ authT.textContent=mode.toUpperCase();
+ nameI.style.display=mode==="signup"?"block":"none";
+}
+
+function togglePass(){
+ let eye=document.getElementById("eyeBtn");
+ if(passI.type==="password"){
+  passI.type="text";
+  eye.textContent="🙈";
+ }else{
+  passI.type="password";
+  eye.textContent="👁";
+ }
+}
+
+function openOverview(){
+ show("overviewPage");
+ renderOverview();
+}
+
+function renderOverview(){
+  let pFilter = document.getElementById("filterPriority").value;
+ let search = document.getElementById("searchUser").value.toLowerCase().trim();
+ let container = document.getElementById("adminTasks");
+ container.innerHTML = "";
+ let found = false;
+
+ Object.keys(localStorage)
+ .filter(k=>k.startsWith("task_"))
+ .forEach(k=>{
+   let userid = k.replace("task_","");
+   let user = JSON.parse(localStorage.getItem("user_" + userid) || "{}");
+   let name = user.name || "Unknown";
+
+   if(search && !userid.toLowerCase().includes(search)) return;
+
+   found = true;
+
+   let list = JSON.parse(localStorage[k] || "[]");
+
+   list.sort((a,b)=>{
+     const order = {High:1, Medium:2, Low:3};
+     return (order[a.priority] || 3) - (order[b.priority] || 3);
+   });
+let done = list.filter(t=>t.progress === 100).length;
+   let percent = list.length ? Math.round(done/list.length*100) : 0;
+
+   container.innerHTML += `
+   <div style="margin-top:10px;padding:10px;border:1px solid #ddd;border-radius:10px">
+     <div style="font-weight:600;font-size:14px">
+       👤 ${name} (${userid}) - ${percent}%
+     </div>
+     <div class="progress"><div style="width:${Math.max(percent,2)}%"></div></div>
+   `;
+
+   list.forEach((t,i)=>{
+    if(pFilter && t.priority !== pFilter) return;
+
+     container.innerHTML += `
+      <div class="task ${t.progress === 100 ? 'done' : ''}">
+         <div>
+           <span class="task-text">${t.text}</span>
+           <br>
+           <small style="color:${
+             t.priority==="High"?"red":
+             t.priority==="Medium"?"orange":"green"
+           }">
+           Priority: ${t.priority || "Low"}
+           </small>
+           <div class="time">
+             ${new Date(t.time).toLocaleString()}
+             ${t.deadline ? `<br><b style="color:${getDeadlineColor(t.deadline)}">
+             Deadline: ${t.deadline}
+             </b>` : ""}
+           </div>
+         </div>
+
+         <div>
+           <button class="small-btn blue" onclick="editTask('${k}',${i});renderOverview()">Edit</button>
+           <button class="small-btn red" onclick="deleteTask('${k}',${i});renderOverview()">Delete</button>
+         </div>
+       </div>
+     `;
+   });
+
+   container.innerHTML += `</div>`;
+ });
+
+ if(!found){
+   container.innerHTML = `
+   <div style="text-align:center;margin-top:20px;color:#777">
+     No tasks assigned yet
+   </div>`;
+ }
+}
+
+function auth(){
+ errI.textContent="";
+if(!validEmail(emailI.value.trim()))
+   return errI.textContent="Enter valid email";
+ if(passI.value.length < 4)
+   return errI.textContent="Password minimum 4 characters";
+ if(role==="admin"){
+  let k="ADMIN";
+ if(mode==="signup"){
+ if(!nameI.value) return errI.textContent="Enter name";
+ if(localStorage[k]) return errI.textContent="Admin already exists";
+ localStorage[k]=JSON.stringify({
+   name:nameI.value,
+  email:emailI.value.toLowerCase().trim(),
+   pass:hash(passI.value)  
+ });
+ alert("Admin registered successfully");
+}
+
+let u;
+try{
+ u = JSON.parse(localStorage[k]||"null");
+}catch{
+ return errI.textContent="Account data corrupted. Re-signup required";
+}
+
+let a = localStorage[k] ? JSON.parse(localStorage[k]) : null;
+if(!a) return errI.textContent="Admin not registered. Signup first.";
+
+// case-insensitive email check
+if(a.email.toLowerCase() !== emailI.value.toLowerCase())
+ return errI.textContent="Admin email incorrect";
+
+if(a.pass !== hash(passI.value))
+ return errI.textContent="Wrong password";
+
+localStorage.current=JSON.stringify({role:"admin",name:a.name}); 
+loadAdmin();
+  return;
+ }
+
+// USER
+if(!userIdI.value.trim())
+  return errI.textContent="Enter User ID";
+let userid = userIdI.value.toLowerCase().trim();
+let k = "user_" + userid;
+
+if(mode==="signup"){
+  if(!nameI.value) return errI.textContent="Enter name";
+  if(localStorage[k]) return errI.textContent="User already exists";
+
+  localStorage[k] = JSON.stringify({
+    name: nameI.value,
+    email: emailI.value.toLowerCase().trim(),
+    pass: hash(passI.value)
+  });
+}
+
+let u;
+try{
+  u = JSON.parse(localStorage[k] || "null");
+}catch{
+  u = null;
+}
+if(!u) 
+  return errI.textContent="User not registered";
+if(u.email.toLowerCase() !== emailI.value.toLowerCase())
+  return errI.textContent="Email incorrect";
+if(u.pass !== hash(passI.value))
+  return errI.textContent="Wrong password";
+localStorage.current = JSON.stringify({  role:"user",  userid:userid,  email:u.email,  name:u.name});
+loadUser();
+}
+function searchTasks(){
+ let q = document.getElementById("searchTask").value.toLowerCase();
+ let all = document.querySelectorAll("#adminTasks .task");
+ all.forEach(t=>{
+   t.style.display = t.innerText.toLowerCase().includes(q) ? "flex" : "none";
+ });
+}
+function searchUserTasks(){
+  let q = document.getElementById("searchUserTask").value.toLowerCase();
+  let tasks = document.querySelectorAll("#userTasks .task");
+
+  tasks.forEach(t=>{
+    t.style.display = t.innerText.toLowerCase().includes(q) ? "flex" : "none";
+  });
+}
+function editProfile(){
+  let adminBox = document.getElementById("adminBox");
+  let userBox = document.getElementById("userBox");
+
+  if(adminBox.classList.contains("active")){
+    let box = document.getElementById("profileBoxAdmin");
+    box.style.display = box.style.display === "none" ? "block" : "none";
+  }
+
+  if(userBox.classList.contains("active")){
+    let box = document.getElementById("profileBoxUser");
+    box.style.display = box.style.display === "none" ? "block" : "none";
+  }
+}
+
+function logout(){
+clearInterval(liveWatcher);
+clearInterval(userNotificationWatcher);
+clearInterval(userTaskWatcher);
+
+ let c = JSON.parse(localStorage.current || "null");
+ if(c && c.role==="user"){
+  let online = JSON.parse(localStorage.getItem("onlineUsers") || "[]");
+ online = online.filter(e=>e!==c.email.toLowerCase());
+  localStorage.setItem("onlineUsers", JSON.stringify(online));
+ }
+ localStorage.removeItem("current");
+ show("roleBox");
+}
+
+function loadAdminNotifications(){
+ let notes = JSON.parse(localStorage.getItem("admin_notifications") || "[]");
+ let now = Date.now();
+ // ⏳ remove after 10 sec
+ notes = notes.filter(n => now - n.createdAt < 10000);
+ localStorage.setItem("admin_notifications", JSON.stringify(notes));
+ let box = document.getElementById("adminNotify");
+ box.innerHTML = "";
+ notes.slice(-5).reverse().forEach(n=>{
+  box.innerHTML += `
+  <div class="notify">
+    ${n.text}<br>
+    <small>${n.time}</small>
+  </div>`;
+ });
+}
+
+function sendUserNotification(userid, taskName){
+ let notes = JSON.parse(localStorage.getItem("user_notifications_"+userid) || "[]");
+notes.push({
+  text: "🆕 New Task Assigned: " + taskName,
+  time: new Date().toLocaleString(),
+  createdAt: Date.now()
+});
+ localStorage.setItem("user_notifications_"+userid, JSON.stringify(notes));
+ // 🔊 SOUND
+ let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+ audio.play();
+ // 🔔 BROWSER POPUP
+ if("Notification" in window && Notification.permission === "granted"){
+   new Notification("New Task Assigned", {
+     body: taskName
+   });
+ }
+}
+
+/* ===== ADMIN ===== */
+function loadAdmin(){
+ show("adminBox");
+ adminName.textContent="Admin : "+JSON.parse(localStorage.current).name;
+
+ updateOnlineCounter();
+ renderAdmin();
+ loadUserDropdown();
+ loadAdminNotifications();
+startAdminLiveNotification();
+}
+
+function addTask(){
+let userid = taskUser.value;
+if(!userid)
+ return alert("Select User");
+if(!localStorage.getItem("user_"+userid))
+ return alert("User not found");
+if(!taskText.value.trim())
+ return alert("Enter task");
+let k="task_"+userid;
+let d = JSON.parse(localStorage[k] || "[]");
+
+/* DUPLICATE CHECK */
+let newTask = taskText.value.trim().toLowerCase().replace(/\s+/g," ");
+if(d.some(t => t.text.toLowerCase().replace(/\s+/g," ") === newTask)){
+ alert("Task already assigned");
+ return;
+}
+
+d.push({
+ text:taskText.value.trim(),
+progress: 0,
+time:new Date().toISOString(),
+ deadline:taskDeadline.value || "",
+ priority: document.getElementById("taskPriority").value || "Low"
+});
+
+localStorage[k]=JSON.stringify(d);
+sendUserNotification(userid, taskText.value.trim());
+taskText.value="";
+taskDeadline.value="";
+taskUser.value="";
+
+renderAdmin();
+status.textContent="Task assigned ✔";
+
+setTimeout(()=>status.textContent="",2000);
+
+if(document.getElementById("overviewPage").classList.contains("active")){
+ renderOverview();
+}
+}
+
+function toggleDark(){
+ document.body.classList.toggle("dark");
+
+ if(document.body.classList.contains("dark")){
+   localStorage.setItem("darkMode","on");
+ }else{
+   localStorage.removeItem("darkMode");
+ }
+}
+
+function renderAdmin(){
+ updateOnlineCounter();
+
+ // ✅ COUNT VALID USERS ONLY
+ let userCount = Object.keys(localStorage).filter(k=>{
+   if(!k.startsWith("user_")) return false;
+
+   try{
+     let u = JSON.parse(localStorage[k]);
+     return u && u.name;
+   }catch{
+     return false;
+   }
+ }).length;
+
+ // ✅ COUNT TASKS (already safe)
+ let taskCount = 0;
+ Object.keys(localStorage)
+   .filter(k=>k.startsWith("task_"))
+   .forEach(k=>{
+     try{
+       taskCount += JSON.parse(localStorage[k] || "[]").length;
+     }catch{
+       taskCount += 0;
+     }
+ });
+
+ totalUsers.textContent = userCount;
+ totalTasks.textContent = taskCount;
+
+ // animation
+ totalUsers.style.transform="scale(1.1)";
+ totalTasks.style.transform="scale(1.1)";
+ setTimeout(()=>{
+   totalUsers.style.transform="scale(1)";
+   totalTasks.style.transform="scale(1)";
+ },200);
+}
+function showToast(message, type="success"){
+  let toast = document.createElement("div");
+
+  toast.style.position = "fixed";
+  toast.style.bottom = "20px";
+  toast.style.right = "20px";
+  toast.style.minWidth = "250px";
+  toast.style.padding = "12px 16px";
+  toast.style.borderRadius = "10px";
+  toast.style.color = "#fff";
+  toast.style.fontSize = "14px";
+  toast.style.boxShadow = "0 8px 20px rgba(0,0,0,0.2)";
+  toast.style.zIndex = "9999";
+  toast.style.opacity = "0";
+  toast.style.transition = "0.4s";
+
+  // color based on type
+  if(type==="success") toast.style.background = "#4caf50";
+  else if(type==="error") toast.style.background = "#e53935";
+  else toast.style.background = "#2196f3";
+
+  toast.innerText = message;
+  document.body.appendChild(toast);
+
+  setTimeout(()=> toast.style.opacity = "1", 50);
+ let duration = 10000;
+
+if(type==="error") duration = 20000;   // error long show
+if(type==="success") duration = 8000; // success short
+
+setTimeout(()=>{
+  toast.style.opacity = "0";
+  setTimeout(()=>toast.remove(),400);
+},duration);
+}
+
+function showAllUsers(){
+ let container=document.getElementById("allUsersList");
+ container.innerHTML="";
+let users = Object.keys(localStorage).filter(k=>{
+  if(!k.startsWith("user_")) return false;
+
+  try{
+    let u = JSON.parse(localStorage[k]);
+    return u && u.name;
+  }catch{
+    return false;
+  }
+});
+
+ // ===== EMPTY STATE =====
+ if(users.length === 0){
+   container.innerHTML = `
+   <div style="text-align:center;padding:20px;color:#777">
+     <div style="font-size:40px">👤</div>
+     <b>No Users Found</b><br>
+     <small>Please create a user account first</small>
+   </div>`;
+   return;
+ }
+
+ // ===== USERS LIST =====
+ users.forEach(k=>{
+  let userid=k.replace("user_","");
+let u;
+try{
+  u = JSON.parse(localStorage[k]);
+}catch{
+  u = null;
+}
+
+let name = u && u.name ? u.name : "Unknown User";
+  container.innerHTML+=`
+  <div class="task">
+   <div>
+    <b>${name}</b><br>
+<small>User ID: ${userid}</small>
+   </div>
+   <div>
+     <button class="small-btn red" onclick="deleteUser('${userid}')">Delete</button>
+   </div>
+  </div>`;
+ });
+}
+
+function showLeaderboard(){
+ let board = document.getElementById("leaderboard");
+ board.innerHTML="";
+
+ let data=[];
+
+ Object.keys(localStorage)
+ .filter(k=>k.startsWith("task_"))
+ .forEach(k=>{
+   let userid = k.replace("task_","");
+   let tasks = JSON.parse(localStorage[k]||"[]");
+
+   let done = tasks.filter(t=>t.progress===100).length;
+   let percent = tasks.length ? Math.round(done/tasks.length*100):0;
+
+   let user = JSON.parse(localStorage.getItem("user_"+userid) || "{}");
+
+   data.push({
+     userid,
+     percent,
+     name:user.name || userid,
+     pic:user.pic || "https://via.placeholder.com/40"
+   });
+ });
+
+ data.sort((a,b)=>b.percent-a.percent);
+
+ data.forEach((u,i)=>{
+   board.innerHTML += `
+   <div class="task">
+     <img src="${u.pic}" style="width:35px;height:35px;border-radius:50%;margin-right:8px">
+     🏅 ${i+1}. ${u.name} - ${u.percent}%
+   </div>`;
+ });
+}
+
+function loadUser(){
+ let c = JSON.parse(localStorage.current || "null");
+ if(!c) return;
+
+ let userid = (c.userid || "").toLowerCase();
+if(!userid){
+ alert("Invalid user session");
+ localStorage.removeItem("current");
+ show("roleBox");
+ return;
+}
+
+ // अगर user delete हो चुका है
+ if(!localStorage.getItem("user_"+userid)){
+  alert("Your account has been removed by admin");
+  localStorage.removeItem("current");
+  show("roleBox");
+  return;
+ }
+
+ // ✅ FIX: always use userid (NOT email)
+ let k="task_"+userid;
+
+ // ===== MARK USER ONLINE =====
+ let online = JSON.parse(localStorage.getItem("onlineUsers") || "[]");
+  if(!online.includes(c.email.toLowerCase())){
+  online.push(c.email.toLowerCase());
+
+}
+   online = [...new Set(online)];
+   localStorage.setItem("onlineUsers", JSON.stringify(online));
+   updateOnlineCounter();  
+   loadUserNotifications();
+ 
+
+ // ===== UI LOAD =====
+ show("userBox");
+ userName.textContent="User : "+c.name;
+ renderUserTasks();
+
+ // ===== LIVE NOTIFICATION =====
+// CLEAR OLD INTERVALS FIRST
+clearInterval(userNotificationWatcher);
+clearInterval(userTaskWatcher);
+
+// ===== NOTIFICATION WATCHER =====
+let lastUserNote = localStorage.getItem("user_notifications_"+userid) || "[]";
+
+userNotificationWatcher = setInterval(()=>{
+  let current = localStorage.getItem("user_notifications_"+userid) || "[]";
+
+  if(current !== lastUserNote){
+    lastUserNote = current;
+
+    loadUserNotifications();
+
+    let notes = JSON.parse(current);
+    let latest = notes[notes.length - 1];
+
+    if(latest){
+     showToast("🆕 " + latest.text, "success");
+
+  // 🔊 sound only once per new update
+  if(!window.lastUserSound || Date.now() - window.lastUserSound > 2000){
+    let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+    audio.play();
+    window.lastUserSound = Date.now();
+  }
+    }
+  }
+},2000);
+
+// ===== TASK WATCHER =====
+userTaskWatcher = setInterval(()=>{
+  let cur = JSON.parse(localStorage.current || "null");
+  if(!cur || cur.role!=="user") return;
+
+  let latest = localStorage["task_"+cur.userid.toLowerCase()] || "[]";
+
+  if(latest !== window.lastTaskSnapshot){
+window.lastTaskSnapshot = localStorage["task_"+userid] || "[]";    renderUserTasks();
+  }
+},1500);
+ 
+}
+ // REALTIME cross-tab update
+window.addEventListener("storage",(e)=>{
+ let c = JSON.parse(localStorage.current || "null");
+ if(!c || c.role!=="user") return;
+
+ if(e.key==="task_"+c.userid.toLowerCase()){
+   renderUserTasks();
+ }
+ if(e.key==="onlineUsers"){
+   updateOnlineCounter();
+ }
+ if(e.key && e.key.startsWith("user_notifications_")){
+  loadUserNotifications();
+}
+});
+
+function loadUserNotifications(){
+ let c = JSON.parse(localStorage.current || "null");
+ if(!c) return;
+ let key = "user_notifications_" + c.userid;
+ let notes = JSON.parse(localStorage.getItem(key) || "[]");
+ let now = Date.now();
+ // ⏳ AUTO REMOVE after 10 seconds
+ notes = notes.filter(n => now - n.createdAt < 10000);
+ // save cleaned list
+ localStorage.setItem(key, JSON.stringify(notes));
+ let box = document.getElementById("userNotify");
+ box.innerHTML = "";
+ notes.slice(-5).reverse().forEach(n=>{
+  box.innerHTML += `
+  <div class="notify">
+    ${n.text}<br>
+    <small>${n.time}</small>
+  </div>`;
+ });
+}
+
+function getUserProgress(tasks){
+  if(tasks.length === 0) return 0;
+  let total = 0;
+tasks.forEach(t=>{
+  if(t.progress === 50) total += 0.5;
+  if(t.progress === 100) total += 1;
+});
+return Math.round((total / tasks.length) * 100);
+}
+
+function renderUserTasks(){
+ let c = JSON.parse(localStorage.current || "null");
+ if(!c) return;
+ let k="task_"+c.userid.toLowerCase();
+let d = JSON.parse(localStorage[k]||"[]");
+// SORT BY PRIORITY
+d.sort((a,b)=>{
+const order = {High:1, Medium:2, Low:3};
+return (order[a.priority] || 3) - (order[b.priority] || 3);
+});
+let updated = false;
+d.forEach(t=>{
+  if(!t.priority || !["Low","Medium","High"].includes(t.priority)){
+    t.priority = "Low";
+    updated = true;
+  }
+});
+
+if(updated){
+  localStorage[k] = JSON.stringify(d);
+}
+let percent = getUserProgress(d);
+
+// 🎯 Convert to steps
+let stepPercent = 0;
+if(percent > 0 && percent <= 20) stepPercent = 20;
+else if(percent <= 40) stepPercent = 40;
+else if(percent <= 60) stepPercent = 60;
+else if(percent <= 80) stepPercent = 80;
+else if(percent > 80) stepPercent = 100;
+
+// ❗ FIRST CLEAR
+userTasks.innerHTML = "";
+
+// 🎯 Progress UI
+userTasks.innerHTML += `
+<div style="
+  margin-bottom:10px;
+  padding:10px;
+  background:#f5f5f5;
+  border-radius:10px;
+">
+  <b>📊 Progress: ${stepPercent}%</b>
+  <div style="
+    height:8px;
+    background:#ddd;
+    border-radius:10px;
+    margin-top:5px;
+    overflow:hidden;
+  ">
+    <div style="
+      height:100%;
+      width:${stepPercent}%;
+      background:linear-gradient(90deg,#4caf50,#2196f3);
+      transition:0.5s;
+    "></div>
+  </div>
+</div>
+`;
+
+ d.forEach((t,i)=>{
+    if(t.deadline){
+    let now = new Date();
+    let deadline = new Date(t.deadline);
+
+    if(deadline - now < 86400000 && t.progress !== 100 && !t.warned){
+      showToast("⚠ Task deadline near: " + t.text, "error");
+
+      t.warned = true; // mark as shown
+    }
+  }
+let isOverdue = t.deadline && getDeadlineColor(t.deadline)==="red";
+  userTasks.innerHTML+=`
+  <div class="task ${t.progress === 100?'done':''} ${isOverdue?'overdue':''}">
+   <div>
+    <span class="task-text">${t.text}</span>
+<br>
+<small style="color:${
+  t.priority==="High"?"red":  
+  t.priority==="Medium"?"orange":"green"
+}">
+Priority: ${t.priority || "Low"}
+</small>
+    <div class="time">
+     ${new Date(t.time).toLocaleString()}
+     ${t.deadline ? `<br><b style="color:${getDeadlineColor(t.deadline)}">
+     Deadline: ${t.deadline}
+     </b>` : ""}
+    <br>
+<small style="font-weight:600;color:${
+  t.progress===100 ? "#4caf50" :
+  t.progress===50 ? "#ff9800" : "#999"
+}">
+${
+  t.progress===100 ? "✅ Completed" :
+  t.progress===50 ? "🟡 Half Done" :
+  "⏳ Pending"
+}
+</small>
+    </div>
+   </div>
+<div>
+<button class="small-btn" onclick="doneTask('${k}',${i})">
+  ${t.progress===50 ? "Complete" : "Half Done"}
+</button>
+
+<button class="small-btn red" onclick="deleteUserTask('${k}',${i})">Delete</button>
+  </div>`;
+ });
+localStorage[k] = JSON.stringify(d);
+
+ if(d.length===0){
+  userTasks.innerHTML=`
+  <div style="text-align:center;color:#777;margin-top:20px">
+   No tasks assigned yet
+  </div>`;
+ }
+}
+
+function doneTask(k,i){
+  let d = JSON.parse(localStorage[k] || "[]");
+  if(!d[i].progress) d[i].progress = 0;
+  if(d[i].progress === 0){
+    d[i].progress = 50;
+  }
+  else if(d[i].progress === 50){
+    d[i].progress = 100;
+    sendAdminNotification(d[i].text);
+  }
+  localStorage[k] = JSON.stringify(d);
+  renderUserTasks();
+}
+
+function exportToExcel(){
+ let csv="User,Task,Status\n";
+ Object.keys(localStorage)
+ .filter(k=>k.startsWith("task_"))
+ .forEach(k=>{
+ let userid=k.replace("task_","");
+  JSON.parse(localStorage[k] || "[]").forEach(t=>{
+   let safeText = `"${t.text.replace(/"/g,'""')}"`;
+csv+=`${userid},${safeText},${t.progress===100?"Completed":"Pending"}\n`;
+  });
+ });
+ let blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+ let a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);
+ a.download="Task_Report.csv";
+ a.click();
+}
+
+function resetAdminPassword(){
+ let a=JSON.parse(localStorage.getItem("ADMIN"));
+ let c=prompt("Current Password:");
+if(!a || a.pass !== hash(c))return alert("Wrong Password");
+ let n=prompt("New Password:");
+ if(n.length<4) return alert("Minimum 4 characters");
+ a.pass = hash(n); 
+ localStorage.setItem("ADMIN",JSON.stringify(a));
+ alert("Password Updated");
+}
+
+function editTask(key,index){
+ let d = JSON.parse(localStorage[key]);
+ let task = d[index];
+ let newTask = prompt("Edit Task:", task.text);
+ if(!newTask || !newTask.trim()) return;
+ let newDeadline = prompt("Edit Deadline (YYYY-MM-DD):", task.deadline || "");
+ if(newDeadline && isNaN(Date.parse(newDeadline))){
+  alert("Invalid date format");
+  return;
+}
+ let newPriority = prompt(
+   "Edit Priority (Low / Medium / High):",
+   task.priority || "Low"
+ );
+if(!newPriority) return;
+newPriority = newPriority.charAt(0).toUpperCase() + 
+              newPriority.slice(1).toLowerCase();
+if(!["Low","Medium","High"].includes(newPriority)){
+  alert("Invalid Priority! Use Low, Medium, or High");
+  return;
+}
+ newTask = newTask.trim();
+ // duplicate prevention
+ if(d.some((t,i)=> i!==index && t.text.toLowerCase()===newTask.toLowerCase())){
+   alert("Same task already exists");
+   return;
+ }
+ d[index].text = newTask;
+ d[index].deadline = newDeadline;
+ d[index].priority = newPriority;
+ localStorage[key] = JSON.stringify(d);
+ renderAdmin();
+ if(document.getElementById("overviewPage").classList.contains("active")){
+   renderOverview();
+ }
+}
+
+function deleteTask(key,index){
+ if(confirm("Delete Task?")){
+  let d=JSON.parse(localStorage[key]);
+  d.splice(index,1);
+  localStorage[key]=JSON.stringify(d);
+  renderAdmin();
+  if(document.getElementById("overviewPage").classList.contains("active"))
+   renderOverview();
+ }
+}
+
+function deleteUser(userid){
+  let online = JSON.parse(localStorage.getItem("onlineUsers") || "[]");
+let user = JSON.parse(localStorage.getItem("user_" + userid) || "{}");
+if(user.email){
+  online = online.filter(e => e !== user.email.toLowerCase());
+}
+localStorage.setItem("onlineUsers", JSON.stringify(online));
+ if(!confirm("Delete this user permanently?")) return;
+localStorage.removeItem("user_"+userid);
+localStorage.removeItem("task_"+userid);
+ let c = JSON.parse(localStorage.current || "null");
+ if(c && c.role==="user" && c.userid===userid){
+ alert("User was logged in → logging out");
+ localStorage.removeItem("current");
+ show("roleBox");
+}
+ alert("User Deleted Successfully");
+ showAllUsers();
+ renderAdmin();
+}
+function deleteUserTask(k,i){
+  if(!confirm("Delete this task?")) return;
+
+  let d = JSON.parse(localStorage[k] || "[]");
+  d.splice(i,1);
+  localStorage[k] = JSON.stringify(d);
+
+  renderUserTasks();
+}
+function openSettings(){
+ show("settingsPage");
+}
+
+function backToAdmin(){
+ show("adminBox");
+ renderAdmin(); // refresh dashboard
+}
+
+/* ================= EMAIL CHANGE ================= */
+function changeAdminEmail(){
+ let a = JSON.parse(localStorage.getItem("ADMIN"));
+ let newEmail = document.getElementById("newAdminEmail").value;
+ if(!validEmail(newEmail)) return alert("Enter valid email");
+a.email = newEmail.toLowerCase().trim();
+ localStorage.setItem("ADMIN", JSON.stringify(a));
+ // update current login session
+ localStorage.current = JSON.stringify({
+   role:"admin",
+   name:a.name
+ });
+ alert("Admin email updated successfully");
+ document.getElementById("newAdminEmail").value="";
+}
+
+/* ================= PASSWORD CHANGE ================= */
+
+function changeAdminPassword(){
+ let a = JSON.parse(localStorage.getItem("ADMIN"));
+ if(!a) return alert("Admin not found");
+ let oldP = document.getElementById("oldPass").value;
+ let newP = document.getElementById("newPass").value;
+ let confirmP = document.getElementById("confirmPass").value;
+ if(a.pass !== hash(oldP)) return alert("Old password incorrect");
+ if(newP.length < 4) return alert("New password minimum 4 characters");
+ if(newP !== confirmP) return alert("Password not matching");
+ a.pass = hash(newP);
+ localStorage.setItem("ADMIN", JSON.stringify(a));
+ alert("Password changed successfully");
+ document.getElementById("oldPass").value="";
+ document.getElementById("newPass").value="";
+ document.getElementById("confirmPass").value="";
+}
+
+function sendAdminNotification(taskName){
+ let c = JSON.parse(localStorage.current || "null");
+ let notes = JSON.parse(localStorage.getItem("admin_notifications") || "[]");
+notes.push({
+  text: `✅ ${c.name} completed task: "${taskName}"`,
+  time: new Date().toLocaleString(),
+  createdAt: Date.now()
+});
+ localStorage.setItem("admin_notifications", JSON.stringify(notes));
+ // 🔔 Browser Notification
+ if("Notification" in window && Notification.permission === "granted"){
+   new Notification("Task Completed", {
+     body: `${c.name} completed: ${taskName}`
+   });
+ }
+ // 🔊 Sound
+ let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+ audio.play();
+}
+
+let adminWatcher = null;
+function startAdminLiveNotification(){
+  clearInterval(adminWatcher);
+let last = localStorage.getItem("admin_notifications") || "[]";
+  adminWatcher = setInterval(()=>{
+ let current = localStorage.getItem("admin_notifications") || "[]";
+ if(current !== last){
+   last = current;
+   loadAdminNotifications();
+ let notes = JSON.parse(current);
+  let latest = notes[notes.length - 1];
+
+  if(latest){
+    showToast(latest.text, "info");
+
+    if(!window.lastAdminSound || Date.now() - window.lastAdminSound > 2000){
+      let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+      audio.play();
+      window.lastAdminSound = Date.now();
+    }
+  }
+ }
+},4000);
+}
+
+function getUsers(){
+ return Object.keys(localStorage).filter(k=>k.startsWith("user_"));
+}
+
+function getTasks(){
+ return Object.keys(localStorage).filter(k=>k.startsWith("task_"));
+}
+
+function openWeeklyReport(){
+ show("weeklyPage");
+ renderWeeklyReport();
+}
+
+function getWeekRange(){
+  let now = new Date();
+  let day = now.getDay();
+  let diff = now.getDate() - day + (day === 0 ? -6 : 1);
+
+  let start = new Date(now.setDate(diff));
+  start.setHours(0,0,0,0);
+
+  let end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  end.setHours(23,59,59,999);
+
+  return {start, end};
+}
+
+function isThisWeek(dateStr){
+ if(!dateStr) return false;
+ let d = new Date(dateStr);
+ let {start,end} = getWeekRange();
+ return d >= start && d <= end;
+}
+
+function renderWeeklyReport(){
+let statusFilter = document.getElementById("filterStatusWeekly")?.value;
+  let search = (document.getElementById("searchWeeklyUser")?.value || "")
+                .toLowerCase()
+                .trim();
+
+  let box = document.getElementById("weeklyData");
+  box.innerHTML = "";
+
+  let users = Object.keys(localStorage).filter(k=>{
+    if(!k.startsWith("user_")) return false;
+    try{
+      let u = JSON.parse(localStorage[k]);
+      return u && u.name;
+    }catch{
+      return false;
+    }
+  });
+
+  if(users.length === 0){
+    box.innerHTML = "<p style='text-align:center;color:#777'>No data available</p>";
+    return;
+  }
+
+  // ✅ WEEK RANGE
+  let today = new Date();
+  let start = new Date(today);
+  let day = start.getDay();
+  let diff = start.getDate() - day + (day === 0 ? -6 : 1);
+
+  start.setDate(diff);
+  start.setHours(0,0,0,0);
+
+  let end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  end.setHours(23,59,59,999);
+
+  let ranking = [];
+
+  users.forEach(uKey=>{
+    let userid = uKey.replace("user_","");
+    if(search && !userid.toLowerCase().includes(search)) return;
+
+    let user = JSON.parse(localStorage[uKey] || "{}");
+    let name = user.name || "Unknown User";
+
+    let tasks = JSON.parse(localStorage["task_"+userid] || "[]");
+
+    let weeklyTasks = tasks.filter(t=>{
+      if(!t.time) return false;
+      let d = new Date(t.time);
+      if(isNaN(d.getTime())) return false;
+      return d >= start && d <= end;
+    });
+
+    let completed = weeklyTasks.filter(t=>t.progress === 100).length;
+    let pending = weeklyTasks.length - completed;
+
+    let overdue = weeklyTasks.filter(t=>{
+      if(!t.deadline || t.progress === 100) return false;
+      return new Date(t.deadline) < new Date();
+    }).length;
+
+    let percent = weeklyTasks.length 
+      ? Math.round((completed / weeklyTasks.length) * 100)
+      : 0;
+
+    ranking.push({name, percent});
+
+    let label = percent >= 80 ? "🔥 Excellent" :
+                percent >= 50 ? "👍 Good" :
+                "⚠ Needs Improvement";
+
+    box.innerHTML += `
+    <div style="
+      margin:14px 0;
+      padding:16px;
+      border-radius:16px;
+      background:#ffffff;
+      box-shadow:0 10px 25px rgba(0,0,0,0.15);
+      border-left:6px solid ${
+        percent >= 80 ? "#4caf50" :
+        percent >= 50 ? "#ff9800" :
+        "#e53935"
+      };
+    ">
+
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:600;font-size:16px">${name}</div>
+          <div style="font-size:12px;color:#777">ID: ${userid}</div>
+        </div>
+        <div style="
+          padding:6px 12px;
+          border-radius:20px;
+          font-weight:600;
+          background:${
+            percent >= 80 ? "#e8f5e9" :
+            percent >= 50 ? "#fff3e0" :
+            "#ffebee"
+          };
+          color:${
+            percent >= 80 ? "#2e7d32" :
+            percent >= 50 ? "#ef6c00" :
+            "#c62828"
+          };
+        ">
+          ${percent}%
+        </div>
+      </div>
+
+      <div style="margin-top:10px;font-size:13px">
+        📌 Total: <b>${weeklyTasks.length}</b> |
+        ✅ Done: <b style="color:#4caf50">${completed}</b> |
+        ⏳ Pending: <b style="color:#ff9800">${pending}</b> |
+        🔴 Overdue: <b style="color:#e53935">${overdue}</b>
+      </div>
+
+      <div style="margin-top:10px;font-size:12px;color:#555">
+        🕒 Last Task: ${
+          weeklyTasks.length 
+          ? new Date(weeklyTasks[weeklyTasks.length-1].time).toLocaleString()
+          : "No tasks"
+        }
+      </div>
+
+      <div style="margin-top:10px;font-size:12px">
+        ${
+          weeklyTasks.slice(-2).map(t => `
+            <div>
+              • ${t.text} ${t.progress === 100 ? "✅" : "⏳"}
+            </div>
+          `).join("")
+        }
+      </div>
+
+      <div style="
+        margin-top:12px;
+        height:8px;
+        background:#eee;
+        border-radius:10px;
+        overflow:hidden
+      ">
+        <div style="
+          height:100%;
+          width:${Math.max(percent,5)}%;
+          background:linear-gradient(90deg,#42a5f5,#7e57c2);
+        "></div>
+      </div>
+
+      <div style="margin-top:8px;font-size:12px;color:#555">
+        ${label}
+      </div>
+
+    </div>
+    `;
+  });
+
+  // 🏆 TOP PERFORMER
+  ranking.sort((a,b)=>b.percent - a.percent);
+
+  if(ranking.length){
+    box.innerHTML = `
+    <div style="
+      padding:12px;
+      background:#fff8e1;
+      border-radius:12px;
+      margin-bottom:10px;
+      text-align:center;
+      font-weight:600;
+    ">
+      🏆 Top Performer: ${ranking[0].name} (${ranking[0].percent}%)
+    </div>
+    ` + box.innerHTML;
+  }
+}
+
+async function downloadWeeklyPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text("Weekly Task Report", 14, 15);
+
+  // ✅ WEEK RANGE
+  let today = new Date();
+  let start = new Date(today);
+  let day = start.getDay();
+  let diff = start.getDate() - day + (day === 0 ? -6 : 1);
+
+  start.setDate(diff);
+  start.setHours(0,0,0,0);
+
+  let end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  end.setHours(23,59,59,999);
+
+  // ✅ FILTER USERS PROPERLY
+  let users = Object.keys(localStorage).filter(k=>{
+    if(!k.startsWith("user_")) return false;
+    try{
+      let u = JSON.parse(localStorage[k]);
+      return u && u.name;
+    }catch{
+      return false;
+    }
+  });
+
+  let tableData = [];
+
+  users.forEach(uKey=>{
+    let userid = uKey.replace("user_","");
+
+    if(userid.startsWith("notifications")) return;
+
+    let user = JSON.parse(localStorage[uKey] || "{}");
+    if(!user.name) return;
+
+    let name = user.name;
+
+    let tasks = JSON.parse(localStorage["task_"+userid] || "[]");
+
+    let weeklyTasks = tasks.filter(t=>{
+      let d = new Date(t.time);
+      if(isNaN(d.getTime())) return false;
+      return d >= start && d <= end;
+    });
+
+    let completed = weeklyTasks.filter(t=>t.progress === 100).length;
+    let pending = weeklyTasks.length - completed;
+    let percent = weeklyTasks.length 
+      ? Math.round((completed / weeklyTasks.length) * 100)
+      : 0;
+
+    // ✅ PUSH ROW DATA
+    tableData.push([
+      name,
+      userid,
+      weeklyTasks.length,
+      completed,
+      pending,
+      percent + "%"
+    ]);
+  });
+
+  // ✅ CREATE TABLE
+  doc.autoTable({
+    startY: 25,
+    head: [["User Name", "User ID", "Total", "Done", "Pending", "Performance"]],
+    body: tableData,
+
+    styles: {
+      halign: "center",
+      fontSize: 10
+    },
+
+    headStyles: {
+      fillColor: [66, 165, 245], // blue
+      textColor: 255,
+      fontStyle: "bold"
+    },
+
+    alternateRowStyles: {
+      fillColor: [240, 240, 240]
+    },
+
+    columnStyles: {
+      0: { halign: "left" },
+      1: { halign: "center" }
+    }
+  });
+
+  doc.save("Weekly_Report_Table.pdf");
+}
+
+function safeJSON(key, fallback){
+  try{
+    return JSON.parse(localStorage.getItem(key)) || fallback;
+  }catch{
+    return fallback;
+  }
+}
+
+function backupData(){
+ let data = JSON.stringify(localStorage);
+ let blob = new Blob([data], {type:"application/json"});
+ let a = document.createElement("a");
+ a.href = URL.createObjectURL(blob);
+ a.download = "backup.json";
+ a.click();
+}
+function safeSet(key, data){
+  try{
+    localStorage.setItem(key, data);
+  }catch(e){
+    alert("Storage full! Please backup data.");
+  }
+}
+</script>
+</body>
+</html>
+ 

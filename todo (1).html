@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My To-Do List</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+margin:0;
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(135deg,#43cea2,#185a9d);
+font-family:'Poppins',sans-serif;
+}
+
+.todo-box{
+background:white;
+width:380px;
+padding:25px;
+border-radius:16px;
+box-shadow:0 20px 40px rgba(0,0,0,0.2);
+}
+
+h2{
+text-align:center;
+margin-bottom:10px;
+}
+
+.welcome{
+text-align:center;
+color:#444;
+font-size:14px;
+margin-bottom:10px;
+}
+
+.home-btn{
+background:#ff9800;
+margin-bottom:6px;
+}
+
+.logout-btn{
+background:#e53935;
+margin-bottom:10px;
+}
+
+input{
+width:100%;
+padding:12px;
+border-radius:10px;
+border:1px solid #ccc;
+margin-top:10px;
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#185a9d;
+color:white;
+font-weight:600;
+margin-top:10px;
+cursor:pointer;
+}
+
+button:hover{
+opacity:0.9;
+}
+
+li{
+list-style:none;
+background:#f4f4f4;
+padding:10px;
+border-radius:8px;
+margin-top:8px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.delete{
+color:red;
+cursor:pointer;
+font-weight:600;
+}
+
+.open{
+color:blue;
+cursor:pointer;
+margin-right:10px;
+}
+
+.congrats{
+display:none;
+text-align:center;
+margin-top:10px;
+color:#2e7d32;
+font-weight:700;
+}
+
+.empty{
+text-align:center;
+color:#777;
+margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="todo-box">
+
+<div class="welcome" id="welcome"></div>
+
+<h2>📝 My Tasks</h2>
+
+<input type="text" id="task" placeholder="Enter your task">
+<button onclick="addTask()">Add Task</button>
+
+<div id="congrats" class="congrats">🎉 Congrats! Task Added 🎆</div>
+
+<ul id="list"></ul>
+
+<button class="home-btn" onclick="goHome()">🏠 Home Page</button>
+<button class="logout-btn" onclick="logout()">🚪 Logout</button>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+const currentUser = localStorage.getItem("userEmail") || sessionStorage.getItem("userEmail");
+
+if(!currentUser){
+window.location="index.html";
+}
+
+/* SHOW USER NAME */
+document.getElementById("welcome").innerText =
+"Welcome, " + (localStorage.getItem("profile_name") || "User");
+
+/* SAFE ARRAY FUNCTION */
+function getSafeArray(key){
+try{
+return JSON.parse(localStorage.getItem(key)) || [];
+}catch{
+return [];
+}
+}
+
+/* HOME PAGE */
+function goHome(){
+window.location.href="index.html";
+}
+
+/* LOGOUT */
+function logout(){
+localStorage.removeItem("userEmail");
+sessionStorage.removeItem("userEmail");
+localStorage.removeItem("profile_name");
+window.location="index.html";
+}
+
+/* ADD TASK */
+function addTask(){
+
+const taskInput=document.getElementById("task");
+const task=taskInput.value.trim();
+
+if(task.length<3){
+alert("Task must be at least 3 characters");
+return;
+}
+
+const email = currentUser;
+let tasks=getSafeArray(email+"_tasks");
+
+tasks.push({
+text:task,
+createdAt:Date.now()
+});
+
+localStorage.setItem(email+"_tasks",JSON.stringify(tasks));
+
+taskInput.value="";
+
+loadTasks();
+showCongrats();
+realisticCelebration();
+}
+
+/* LOAD TASKS */
+function loadTasks(){
+
+const list=document.getElementById("list");
+list.innerHTML="";
+
+const email = currentUser;
+let tasks=getSafeArray(email+"_tasks");
+
+if(tasks.length===0){
+list.innerHTML="<div class='empty'>No tasks yet</div>";
+return;
+}
+
+tasks.forEach((task,index)=>{
+
+const li=document.createElement("li");
+
+li.innerHTML=`
+<span>${task.text}</span>
+<div>
+<span class="open" onclick="openTask(${index})">Open</span>
+<span class="delete" onclick="confirmDelete(${index})">Delete</span>
+</div>
+`;
+
+list.appendChild(li);
+
+});
+
+}
+
+/* CONFIRM DELETE */
+function confirmDelete(i){
+if(confirm("Delete this task?")){
+deleteTask(i);
+}
+}
+
+/* DELETE TASK */
+function deleteTask(index){
+
+const email = currentUser;
+let tasks=getSafeArray(email+"_tasks");
+
+tasks.splice(index,1);
+
+localStorage.setItem(email+"_tasks",JSON.stringify(tasks));
+
+loadTasks();
+}
+
+/* OPEN TASK */
+function openTask(index){
+
+const email = currentUser;
+let tasks=getSafeArray(email+"_tasks");
+
+localStorage.setItem("openTask",tasks[index].text);
+
+window.location.href="task.html";
+}
+
+/* SHOW CONGRATS MESSAGE */
+function showCongrats(){
+
+const msg=document.getElementById("congrats");
+
+msg.style.display="block";
+
+setTimeout(()=>{
+msg.style.display="none";
+},2500);
+
+}
+
+/* CONFETTI CELEBRATION */
+function realisticCelebration(){
+
+confetti({
+particleCount:80,
+spread:120,
+origin:{y:0.6}
+});
+
+}
+
+/* LOAD TASKS ON START */
+loadTasks();
+
+</script>
+
+</body>
+</html>
+

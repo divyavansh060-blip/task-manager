@@ -1,0 +1,139 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Signup</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+font-family:Poppins;
+background:linear-gradient(135deg,#667eea,#764ba2);
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+margin:0;
+}
+
+.box{
+background:white;
+padding:30px;
+border-radius:15px;
+width:330px;
+box-shadow:0 20px 40px rgba(0,0,0,.25);
+}
+
+h2{
+text-align:center;
+color:#5e35b1;
+}
+
+input,button{
+width:100%;
+padding:11px;
+margin-top:10px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:14px;
+}
+
+button{
+background:#5e35b1;
+color:white;
+border:none;
+font-weight:600;
+cursor:pointer;
+}
+
+button:hover{
+transform:scale(1.02);
+}
+
+#msg{
+text-align:center;
+margin-top:10px;
+}
+
+.success{color:green;}
+.error{color:red;}
+
+.back{
+margin-top:10px;
+color:blue;
+cursor:pointer;
+text-align:center;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>📝 Signup</h2>
+
+<input id="email" placeholder="Email">
+<input id="pass" type="password" placeholder="Password">
+
+<button onclick="signup()">Signup</button>
+
+<p id="msg"></p>
+
+<p class="back" onclick="location.href='index.html'">
+⬅ Back to Login
+</p>
+
+</div>
+
+<script>
+
+function signup(){
+
+let email=document.getElementById("email").value.trim();
+let pass=document.getElementById("pass").value.trim();
+let msg=document.getElementById("msg");
+
+let emailPattern=/^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+
+if(!email || !pass){
+msg.className="error";
+msg.innerText="Fill all fields";
+return;
+}
+
+if(!emailPattern.test(email)){
+msg.className="error";
+msg.innerText="Enter valid email";
+return;
+}
+
+if(pass.length<6){
+msg.className="error";
+msg.innerText="Password must be at least 6 characters";
+return;
+}
+
+if(localStorage.getItem(email+"_pass")){
+msg.className="error";
+msg.innerText="User already exists";
+return;
+}
+
+localStorage.setItem(email+"_pass",btoa(pass));
+
+msg.className="success";
+msg.innerText="Signup successful ✓";
+
+setTimeout(()=>{
+location.href="index.html";
+},1200);
+
+}
+
+</script>
+
+</body>
+</html>
+

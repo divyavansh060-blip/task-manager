@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Professional Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;font-family:Poppins}
+
+body{
+background:linear-gradient(135deg,#667eea,#764ba2);
+height:100vh;
+margin:0;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+.box{
+background:#fff;
+padding:28px;
+border-radius:18px;
+width:360px;
+box-shadow:0 20px 40px rgba(0,0,0,.25);
+}
+
+h2{text-align:center;color:#5e35b1;}
+
+#welcome{
+text-align:center;
+color:#2e7d32;
+font-weight:600;
+margin-bottom:10px;
+}
+
+input,button{
+width:100%;
+padding:11px;
+margin-top:10px;
+border-radius:10px;
+border:1px solid #ccc;
+}
+
+button{
+background:#5e35b1;
+color:white;
+border:none;
+cursor:pointer;
+transition:0.2s;
+}
+
+button:hover{
+transform:scale(1.03);
+}
+
+.link{
+text-align:center;
+margin-top:10px;
+color:#3949ab;
+cursor:pointer;
+}
+
+.passbox{
+position:relative;
+}
+
+.eye{
+position:absolute;
+right:12px;
+top:12px;
+cursor:pointer;
+}
+
+.success{color:green;text-align:center}
+.error{color:red;text-align:center}
+
+.remember{
+display:flex;
+align-items:center;
+gap:6px;
+font-size:13px;
+margin-top:8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Login</h2>
+
+<div id="welcome"></div>
+
+<input id="name" placeholder="Full Name">
+<input id="email" placeholder="Email Address">
+
+<div class="passbox">
+<input id="password" type="password" placeholder="Password">
+<span class="eye" onclick="togglePass()">👁</span>
+</div>
+
+<div class="remember">
+<input type="checkbox" id="remember"> Remember Me
+</div>
+
+<button onclick="login()">Login</button>
+
+<div class="link" onclick="location.href='signup.html'">Create Account</div>
+<div class="link" onclick="location.href='forgot.html'">Forgot Password</div>
+<div class="link" onclick="location.href='admin&user.html'">Admin & User Panel</div>
+
+<p id="msg"></p>
+</div>
+
+<script>
+
+/* AUTO LOAD USER */
+window.onload=function(){
+
+let savedEmail = localStorage.getItem("userEmail") || sessionStorage.getItem("userEmail");
+let savedName = localStorage.getItem("profile_name");
+
+if(savedEmail && savedName){
+
+document.getElementById("email").value = savedEmail;
+document.getElementById("name").value = savedName;
+
+document.getElementById("welcome").innerText =
+"Welcome back, " + savedName + " 👋";
+
+}
+
+}
+
+/* SHOW PASSWORD */
+function togglePass(){
+let pass=document.getElementById("password");
+pass.type = pass.type==="password" ? "text" : "password";
+}
+
+/* EMAIL VALIDATION */
+function isValidEmail(email){
+return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+/* ENTER KEY LOGIN */
+document.addEventListener("keypress",function(e){
+if(e.key==="Enter"){
+login();
+}
+});
+
+/* LOGIN */
+function login(){
+
+let name=document.getElementById("name").value.trim();
+let email=document.getElementById("email").value.trim();
+let pass=document.getElementById("password").value.trim();
+let remember=document.getElementById("remember").checked;
+
+let msg=document.getElementById("msg");
+
+if(name==""||email==""||pass==""){
+msg.className="error";
+msg.innerText="Fill all details";
+return;
+}
+
+if(!isValidEmail(email)){
+msg.className="error";
+msg.innerText="Enter valid email";
+return;
+}
+
+let savedPass=localStorage.getItem(email+"_pass");
+
+if(savedPass==null){
+msg.className="error";
+msg.innerText="User not registered";
+return;
+}
+
+if(atob(savedPass)!==pass){
+msg.className="error";
+msg.innerText="Wrong password";
+return;
+}
+
+/* SESSION SAVE */
+if(remember){
+localStorage.setItem("userEmail",email);
+sessionStorage.removeItem("userEmail");
+}else{
+sessionStorage.setItem("userEmail",email);
+localStorage.removeItem("userEmail");
+}
+
+localStorage.setItem("profile_name",name);
+
+msg.className="success";
+msg.innerText="Login Successful ✓";
+
+setTimeout(()=>{
+window.location="todo.html";
+},1000);
+
+}
+
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<title>Task Detail</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+body{
+margin:0;
+background:linear-gradient(135deg,#ff9a9e,#fad0c4,#fbc2eb,#a18cd1);
+font-family:'Poppins',sans-serif;
+transition:0.3s;
+}
+
+/* DARK MODE */
+body.dark{
+background:#121212;
+color:white;
+}
+
+body.dark .task-box{
+background:#1e1e1e;
+color:white;
+}
+
+body.dark input,
+body.dark textarea,
+body.dark select{
+background:#2c2c2c;
+color:white;
+border:1px solid #555;
+}
+
+.page{
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+.task-box{
+background:white;
+width:100%;
+max-width:420px;
+padding:25px;
+border-radius:18px;
+box-shadow:0 15px 35px rgba(0,0,0,0.25);
+animation:fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn{
+from{opacity:0; transform:translateY(20px);}
+to{opacity:1; transform:translateY(0);}
+}
+
+h2{text-align:center;color:#6a1b9a;}
+
+.section{margin-top:15px;}
+
+.task-text{
+background:#185a9d;
+color:white;
+padding:12px;
+border-radius:12px;
+font-size:18px;
+font-weight:600;
+text-align:center;
+}
+
+input,select,textarea{
+width:100%;
+padding:10px;
+border-radius:10px;
+border:1px solid #ccc;
+margin-top:8px;
+font-size:14px;
+transition:0.25s;
+}
+
+/* TEXTAREA */
+textarea{
+resize:none;
+height:90px;
+}
+
+/* BUTTON */
+button{
+width:100%;
+padding:10px;
+border:none;
+border-radius:12px;
+background:linear-gradient(135deg,#ff9800,#f44336);
+color:white;
+font-weight:600;
+cursor:pointer;
+margin-top:10px;
+transition:0.25s;
+box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* BUTTON HOVER */
+button:hover{
+opacity:0.95;
+transform:translateY(-2px);
+box-shadow:0 6px 15px rgba(0,0,0,0.25);
+}
+
+/* BUTTON CLICK EFFECT */
+button:active{
+transform:scale(0.97);
+}
+
+/* INPUT FOCUS */
+input:focus, textarea:focus, select:focus{
+outline:none;
+border:1px solid #6a1b9a;
+box-shadow:0 0 8px rgba(106,27,154,0.4);
+}
+
+/* PLACEHOLDER STYLE */
+input::placeholder,
+textarea::placeholder{
+color:#999;
+font-size:13px;
+}
+
+/* DARK MODE SUPPORT */
+body.dark input,
+body.dark textarea,
+body.dark select{
+background:#2c2c2c;
+color:white;
+border:1px solid #555;
+}
+
+body.dark input::placeholder,
+body.dark textarea::placeholder{
+color:#bbb;
+}
+
+li{
+list-style:none;
+background:#f2f2f2;
+padding:8px;
+border-radius:6px;
+margin-top:6px;
+display:flex;
+align-items:center;
+gap:6px;
+}
+
+body.dark li{
+background:#333;
+}
+
+ul{padding:0;margin:0;}
+
+#progress{text-align:center;margin-top:10px;font-weight:600;}
+#bar{
+height:10px;
+background:linear-gradient(90deg,#4caf50,#8bc34a);
+border-radius:10px;
+width:0%;
+transition:0.4s;
+}
+
+.small-btn{
+padding:3px 6px;
+font-size:11px;
+border-radius:5px;
+width:auto;
+}
+
+.edit-btn{background:#2196f3;}
+.delete-btn{background:#f44336;}
+
+#dashboard{
+text-align:center;
+font-weight:600;
+margin-bottom:15px;
+padding:10px;
+border-radius:10px;
+background:#f3e5f5;
+color:#4a148c;
+}
+
+/* NEW BUTTON STYLE */
+.top-actions{
+display:flex;
+gap:10px;
+margin-bottom:10px;
+
+}
+
+.top-actions button{
+flex:1;
+}
+</style>
+</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<body>
+
+<div class="page">
+<div class="task-box">
+
+<div id="profileBox" style="display:none; padding:15px; border-radius:12px; margin-bottom:10px; background:#ede7f6;">
+  
+  <div style="text-align:center;">
+    <img id="profilePic" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #6a1b9a;">
+    
+    <input type="file" id="uploadPic" accept="image/*" style="margin-top:10px;">
+  </div>
+
+  <input id="profileNameInput" placeholder="Enter Name">
+  <input id="profileEmailInput" placeholder="Enter Email">
+
+  <input type="password" id="oldPass" placeholder="Old Password">
+  <input type="password" id="newPass" placeholder="New Password">
+
+  <button onclick="saveProfile()">💾 Save Profile</button>
+  <button onclick="changePassword()">🔐 Change Password</button>
+</div>
+
+<div class="top-actions">
+<img id="topProfile" src="" style="width:40px;height:40px;border-radius:50%;">
+<button onclick="toggleDark()">🌙 Dark</button>
+<button onclick="editProfile()">👤 Edit</button>
+</div>
+
+<div id="dashboard"></div>
+
+<h2>Task Detail</h2>
+
+<div id="userInfo"></div>
+<div id="taskText" class="task-text"></div>
+
+<div class="section">
+<select id="priority">
+<option value="">Select Priority</option>
+<option value="High">High</option>
+<option value="Medium">Medium</option>
+<option value="Low">Low</option>
+</select>
+
+<input type="datetime-local" id="schedule">
+</div>
+
+<div class="section">
+<textarea id="planInput" placeholder="Write your plan..."></textarea>
+<button onclick="savePlan()">Save Plan</button>
+</div>
+
+<div class="section">
+<input id="activityInput" placeholder="Add activity">
+<button onclick="addActivity()">Add Activity</button>
+<ul id="activityList"></ul>
+</div>
+
+<div class="section">
+<input id="stepInput" placeholder="Add step">
+<button onclick="addStep()">Add Step</button>
+
+<div id="progress"></div>
+<div style="background:#ddd;border-radius:10px;">
+<div id="bar"></div>
+</div>
+
+<ul id="stepList"></ul>
+</div>
+
+<button onclick="viewPlan()">👁 View Saved Plan</button>
+<button onclick="clearHistory()">🗑 Clear History</button>
+<button onclick="exportExcel()">📊 Export Excel</button>
+<button onclick="goBack()">⬅ Back</button>
+<button onclick="logout()">Logout</button>
+
+</div>
+</div>
+
+<script>
+const planInput = document.getElementById("planInput");
+const activityInput = document.getElementById("activityInput");
+const activityList = document.getElementById("activityList");
+const stepInput = document.getElementById("stepInput");
+const stepList = document.getElementById("stepList");
+const progress = document.getElementById("progress");
+const bar = document.getElementById("bar");
+const dashboard = document.getElementById("dashboard");
+const schedule = document.getElementById("schedule");
+const profileNameInput = document.getElementById("profileNameInput");
+const profileEmailInput = document.getElementById("profileEmailInput");
+const profilePic = document.getElementById("profilePic");
+/* SECURITY */
+const currentUser = localStorage.getItem("userEmail") || sessionStorage.getItem("userEmail");
+if(!currentUser) window.location="index.html";
+
+/* NOTIFICATION PERMISSION */
+if("Notification" in window){
+Notification.requestPermission();
+}
+
+/* DARK MODE */
+if(localStorage.getItem("darkMode") === "on"){
+document.body.classList.add("dark");
+}
+
+function toggleDark(){
+document.body.classList.toggle("dark");
+localStorage.setItem("darkMode",
+document.body.classList.contains("dark") ? "on" : "off");
+}
+
+/* PROFILE */
+function editProfile(){
+let box = document.getElementById("profileBox");
+box.style.display = box.style.display === "none" ? "block" : "none";
+
+/* Load existing data */
+profileNameInput.value = localStorage.getItem("profile_name") || "";
+profileEmailInput.value = localStorage.getItem("userEmail") || "";
+profilePic.src = localStorage.getItem("profile_pic") || "https://via.placeholder.com/80";
+}
+document.getElementById("topProfile").src =
+localStorage.getItem("profile_pic") || "https://via.placeholder.com/40"; 
+
+document.getElementById("uploadPic").addEventListener("change", function(){
+let file = this.files[0];
+let reader = new FileReader();
+
+reader.onload = function(){
+localStorage.setItem("profile_pic", reader.result);
+profilePic.src = reader.result;
+};
+
+if(file) reader.readAsDataURL(file);
+});
+
+function saveProfile(){
+localStorage.setItem("profile_name", profileNameInput.value);
+localStorage.setItem("userEmail", profileEmailInput.value);
+
+alert("Profile Updated ✅");
+location.reload();
+}
+/* USER */
+document.getElementById("userInfo").innerText =
+"Welcome, " + (localStorage.getItem("profile_name") || "User");
+
+/* TASK */
+const task = (localStorage.getItem("openTask") || "").trim();
+if(!task){
+alert("No task found!");
+window.location = "todo.html";
+}
+document.getElementById("taskText").innerText = task;
+
+/* KEYS */
+let stepsKey = "steps_" + task;
+let activityKey = "activity_" + task;
+let planKey = "plan_" + task;
+
+function getArr(key){
+try{return JSON.parse(localStorage.getItem(key))||[];}
+catch{return [];}
+}
+
+function savePlan(){
+  
+  let key = "plans_" + task;
+  let arr = JSON.parse(localStorage.getItem(key) || "[]");
+
+  let text = planInput.value.trim();
+  if(!text) return;
+  arr.push({
+    text: text,
+    date: new Date().toLocaleString()
+  });
+  localStorage.setItem(key, JSON.stringify(arr));
+  // 🔥 IMPORTANT FIX
+  planInput.value = "";
+  localStorage.removeItem(planKey); // auto-save remove
+  showToast("Plan Saved ✅");
+  planInput.focus();
+}
+
+/* 🔔 REMINDER */
+function checkReminder(){
+let time = schedule.value;
+if(!time) return;
+
+let now = new Date().getTime();
+let taskTime = new Date(time).getTime();
+
+if(taskTime > now){
+let delay = taskTime - now;
+
+setTimeout(()=>{
+if(Notification.permission === "granted"){
+new Notification("⏰ Task Reminder", {
+body: task + " is scheduled now!",
+});
+}
+}, delay);
+}
+}
+schedule.addEventListener("change", checkReminder);
+
+/* 🎯 PROGRESS */
+ 
+
+/* ACTIVITIES */
+function loadActivities(){
+let acts = getArr(activityKey);
+activityList.innerHTML="";
+
+acts.forEach((a,i)=>{
+activityList.innerHTML+=`
+<li>
+<input type="checkbox" ${a.done?"checked":""} onchange="toggleActivity(${i})">
+<span style="flex:1;${a.done?'text-decoration:line-through;color:gray;':''}">${a.text}</span>
+<button class="small-btn edit-btn" onclick="editActivity(${i})">Edit</button>
+<button class="small-btn delete-btn" onclick="deleteActivity(${i})">Delete</button>
+</li>`;
+});
+
+updateProgress();
+}
+
+function addActivity(){
+let val=activityInput.value.trim();
+if(!val) return;
+
+let arr=getArr(activityKey);
+arr.push({text:val,done:false});
+
+localStorage.setItem(activityKey,JSON.stringify(arr));
+
+/* CLEAR INPUT */
+activityInput.value = "";
+
+/* REFRESH LIST (NO PAGE RELOAD) */
+loadActivities();
+}
+
+function toggleActivity(i){
+let arr=getArr(activityKey);
+arr[i].done=!arr[i].done;
+
+localStorage.setItem(activityKey,JSON.stringify(arr));
+loadActivities();
+}
+
+function deleteActivity(i){
+let arr=getArr(activityKey);
+arr.splice(i,1);
+
+localStorage.setItem(activityKey,JSON.stringify(arr));
+loadActivities();
+}
+
+function editActivity(i){
+let arr=getArr(activityKey);
+let v=prompt("Edit",arr[i].text);
+
+if(v){
+arr[i].text=v;
+localStorage.setItem(activityKey,JSON.stringify(arr));
+loadActivities();
+}
+}
+
+/* STEPS */
+function loadSteps(){
+let steps=getArr(stepsKey);
+stepList.innerHTML="";
+
+steps.forEach((s,i)=>{
+stepList.innerHTML+=`
+<li>
+<input type="checkbox" ${s.done?"checked":""} onchange="toggleDone(${i})">
+<span style="flex:1;${s.done?'text-decoration:line-through;color:gray;':''}">${s.text}</span>
+<button class="small-btn edit-btn" onclick="editStep(${i})">Edit</button>
+<button class="small-btn delete-btn" onclick="deleteStep(${i})">Delete</button>
+</li>`;
+});
+updateProgress();
+}
+
+function addStep(){
+let v=stepInput.value.trim();
+if(!v) return;
+let steps=getArr(stepsKey);
+steps.push({text:v,done:false});
+localStorage.setItem(stepsKey,JSON.stringify(steps));
+/* CLEAR INPUT */
+stepInput.value = "";
+/* REFRESH LIST */
+loadSteps();
+}
+
+function toggleDone(i){
+let steps=getArr(stepsKey);
+steps[i].done=!steps[i].done;
+
+localStorage.setItem(stepsKey,JSON.stringify(steps));
+loadSteps();
+
+/* SAVE WEEKLY DATA */
+if(steps[i].done){
+let history = JSON.parse(localStorage.getItem("weekly_done")||"[]");
+history.push(new Date().toISOString());
+localStorage.setItem("weekly_done", JSON.stringify(history));
+}
+}
+
+function deleteStep(i){
+let steps=getArr(stepsKey);
+steps.splice(i,1);
+
+localStorage.setItem(stepsKey,JSON.stringify(steps));
+loadSteps();
+}
+
+function editStep(i){
+let steps=getArr(stepsKey);
+let v=prompt("Edit",steps[i].text);
+
+if(v){
+steps[i].text=v;
+localStorage.setItem(stepsKey,JSON.stringify(steps));
+loadSteps();
+}
+}
+
+function showReward(percent){
+let rewardText = "";
+let badge = "";
+let bonus = "";
+
+if(percent === 100){
+rewardText = "🎉 Congratulations! Task Completed!";
+badge = "🏆 Master Achiever";
+bonus = "💰 +50 Points Earned!";
+}
+else if(percent >= 80){
+rewardText = "💪 Great Job!";
+badge = "🥇 Gold Performer";
+bonus = "💰 +30 Points";
+}
+else if(percent >= 50){
+rewardText = "👍 Good Progress!";
+badge = "🥈 Silver Performer";
+bonus = "💰 +15 Points";
+}
+else if(percent > 0){
+rewardText = "🚀 Nice Start!";
+badge = "🥉 Beginner";
+bonus = "💰 +5 Points";
+}
+else{
+rewardText = "⚡ Start your task!";
+badge = "🎯 No Progress";
+bonus = "";
+}
+
+let points = parseInt(localStorage.getItem("points") || 0);
+
+if(percent === 100 && !localStorage.getItem("rewardShown_"+task)){
+points += 50;
+localStorage.setItem("points", points);
+localStorage.setItem("rewardShown_"+task,true);
+
+alert("🎉 Task Completed!\nYou earned 50 Points!");
+}
+
+let rewardHTML = `
+<div style="
+margin-top:10px;
+padding:12px;
+border-radius:12px;
+background:${document.body.classList.contains("dark") ? "#333" : "#fff3e0"};
+text-align:center;
+font-weight:600;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+">
+<div style="font-size:16px;">${rewardText}</div>
+<div style="margin-top:5px;">${badge}</div>
+<div style="margin-top:5px;color:green;">${bonus}</div>
+<div style="margin-top:8px;font-size:14px;">⭐ Total Points: ${points}</div>
+</div>
+`;
+
+/* 🔥 FIX: REMOVE OLD REWARD FIRST */
+let oldReward = document.getElementById("rewardBox");
+if(oldReward) oldReward.remove();
+
+/* ADD NEW ONE */
+let wrapper = document.createElement("div");
+wrapper.id = "rewardBox";
+wrapper.innerHTML = rewardHTML;
+
+dashboard.appendChild(wrapper);
+}
+
+function updateProgress(){
+
+let steps = getArr(stepsKey);
+let acts = getArr(activityKey);
+
+let done = 0;
+
+steps.forEach(s=>{if(s.done) done++;});
+acts.forEach(a=>{if(a.done) done++;});
+
+let total = steps.length + acts.length;
+let percent = total ? Math.round((done/total)*100) : 0;
+
+progress.innerText = "Progress: " + percent + "%";
+bar.style.width = percent + "%";
+
+/* COLOR */
+if(percent < 30){
+bar.style.background = "#f44336";
+}
+else if(percent < 70){
+bar.style.background = "#ff9800";
+}
+else{
+bar.style.background = "#4caf50";
+}
+
+/* ✅ ONLY THIS */
+updateDashboard();
+}
+function updateDashboard(){
+
+let steps = getArr(stepsKey);
+let acts = getArr(activityKey);
+
+let total = steps.length + acts.length;
+let done = 0;
+
+steps.forEach(s=>{if(s.done) done++;});
+acts.forEach(a=>{if(a.done) done++;});
+
+let pending = total - done;
+
+/* CALCULATE PERCENT HERE */
+let percent = total ? Math.round((done/total)*100) : 0;
+
+dashboard.innerHTML = `
+<div style="display:flex;justify-content:space-around;">
+<span>📋 total ${total}</span>
+<span>⏳ pending ${pending}</span>
+<span>✅ done ${done}</span>
+</div>`;
+
+/* ✅ SHOW REWARD HERE (BETTER DESIGN) */
+showReward(percent);
+
+/* WEEKLY */
+showWeeklyAnalytics();
+}
+
+function showWeeklyAnalytics(){
+let history = JSON.parse(localStorage.getItem("weekly_done") || "[]");
+
+let days = [];
+let counts = {};
+
+for(let i=6;i>=0;i--){
+let d = new Date();
+d.setDate(d.getDate() - i);
+
+let key = d.toLocaleDateString();
+days.push({
+label: d.toLocaleDateString(undefined,{weekday:'short'}),
+key: key
+});
+
+counts[key] = 0;
+}
+
+/* Count completed tasks */
+history.forEach(date=>{
+let d = new Date(date).toLocaleDateString();
+if(counts[d] !== undefined){
+counts[d]++;
+}
+});
+
+/* Build UI */
+let html = `<div style="
+margin-top:12px;
+padding:10px;
+border-radius:10px;
+background:${document.body.classList.contains("dark") ? "#2c2c2c" : "#ede7f6"};
+">
+<div style="font-weight:600;margin-bottom:8px;">📊 Weekly Analytics</div>
+<div style="display:flex;justify-content:space-between;font-size:12px;">`;
+
+/* Show each day */
+days.forEach(d=>{
+html += `
+<div style="text-align:center;">
+<div>${d.label}</div>
+<div style="font-weight:600;">${counts[d.key]}</div>
+</div>`;
+});
+html += `</div></div>`;
+/* Add to dashboard */
+dashboard.innerHTML += html;
+}
+
+ 
+
+/* OTHER */
+function clearHistory(){
+if(confirm("Clear all?")){
+localStorage.removeItem(stepsKey);
+localStorage.removeItem(activityKey);
+localStorage.removeItem(planKey);
+location.reload();
+}
+}
+
+function changePassword(){
+let oldP = document.getElementById("oldPass").value;
+let newP = document.getElementById("newPass").value;
+let savedPass = localStorage.getItem("userPassword") || "1234";
+if(oldP !== savedPass){
+alert("❌ Wrong Old Password");
+return;
+}
+if(newP.length < 4){
+alert("⚠ Password must be 4+ characters");
+return;
+}
+localStorage.setItem("userPassword", newP);
+alert("🔐 Password Changed Successfully");
+document.getElementById("oldPass").value="";
+document.getElementById("newPass").value="";
+}
+function exportExcel(){
+
+let wb = XLSX.utils.book_new();
+let data = [];
+
+/* TITLE */
+data.push(["TASK REPORT"]);
+data.push([task]);
+
+/* EMPTY */
+data.push([]);
+
+/* HEADERS */
+data.push(["No", "Description", "Status / Date"]);
+
+/* PLANS */
+let plans = JSON.parse(localStorage.getItem("plans_" + task) || "[]");
+data.push([]);
+data.push(["PLANS"]);
+plans.forEach((p,i)=>{
+  data.push([i+1, p.text, p.date]);
+});
+
+/* STEPS */
+let steps = getArr(stepsKey);
+data.push([]);
+data.push(["STEPS"]);
+steps.forEach((s,i)=>{
+  data.push([i+1, s.text, s.done ? "Done" : "Pending"]);
+});
+
+/* ACTIVITIES */
+let acts = getArr(activityKey);
+data.push([]);
+data.push(["ACTIVITIES"]);
+acts.forEach((a,i)=>{
+  data.push([i+1, a.text, a.done ? "Done" : "Pending"]);
+});
+
+/* CREATE SHEET */
+let ws = XLSX.utils.aoa_to_sheet(data);
+
+/* RANGE */
+let range = XLSX.utils.decode_range(ws['!ref']);
+
+/* LOOP STYLE */
+for(let R = range.s.r; R <= range.e.r; ++R){
+  for(let C = range.s.c; C <= range.e.c; ++C){
+
+    let cell = ws[XLSX.utils.encode_cell({r:R,c:C})];
+    if(!cell) continue;
+
+    /* DEFAULT BORDER */
+    cell.s = {
+      border: {
+        top:{style:"thin"},
+        bottom:{style:"thin"},
+        left:{style:"thin"},
+        right:{style:"thin"}
+      },
+      alignment:{vertical:"center"}
+    };
+
+    /* TITLE */
+    if(R === 0){
+      cell.s = {
+        font:{bold:true, sz:16, color:{rgb:"FFFFFF"}},
+        fill:{fgColor:{rgb:"4A148C"}},
+        alignment:{horizontal:"center"},
+      };
+    }
+
+    /* COLUMN HEADER */
+    if(R === 3){
+      cell.s = {
+        font:{bold:true,color:{rgb:"FFFFFF"}},
+        fill:{fgColor:{rgb:"6A1B9A"}},
+        alignment:{horizontal:"center"},
+        border: {
+          top:{style:"medium"},
+          bottom:{style:"medium"},
+          left:{style:"thin"},
+          right:{style:"thin"}
+        }
+      };
+    }
+
+    /* SECTION HEADINGS */
+    if(cell.v === "PLANS" || cell.v === "STEPS" || cell.v === "ACTIVITIES"){
+      cell.s = {
+        font:{bold:true,color:{rgb:"FFFFFF"}},
+        fill:{fgColor:{rgb:"1976D2"}},
+        alignment:{horizontal:"center"},
+      };
+    }
+
+    /* DONE / PENDING */
+    if(cell.v === "Done"){
+      cell.s.fill = {fgColor:{rgb:"4CAF50"}};
+      cell.s.font = {bold:true,color:{rgb:"FFFFFF"}};
+    }
+
+    if(cell.v === "Pending"){
+      cell.s.fill = {fgColor:{rgb:"E53935"}};
+      cell.s.font = {bold:true,color:{rgb:"FFFFFF"}};
+    }
+  }
+}
+
+/* MERGE TITLE */
+ws['!merges'] = [
+  {s:{r:0,c:0}, e:{r:0,c:2}}, // TITLE MERGE
+  {s:{r:1,c:0}, e:{r:1,c:2}}  // TASK NAME MERGE
+];
+
+/* COLUMN WIDTH */
+ws['!cols'] = [
+  {wch:6},
+  {wch:35},
+  {wch:25}
+];
+
+/* ADD SHEET */
+XLSX.utils.book_append_sheet(wb, ws, "Task Report");
+
+/* DOWNLOAD */
+XLSX.writeFile(wb, task + "_PRO_REPORT.xlsx");
+
+showToast("📊 Professional Excel Ready ✅");
+}
+
+function showToast(msg){
+let t = document.createElement("div");
+t.innerText = msg;
+t.style.position = "fixed";
+t.style.bottom = "20px";
+t.style.left = "50%";
+t.style.transform = "translateX(-50%)";
+t.style.background = "#333";
+t.style.color = "#fff";
+t.style.padding = "10px 20px";
+t.style.borderRadius = "8px";
+t.style.zIndex = "9999";
+document.body.appendChild(t);
+setTimeout(()=>{ t.remove(); },2000);
+}
+
+function goBack(){window.location="todo.html";}
+function logout(){
+sessionStorage.clear();
+location="index.html";
+}
+
+/* WEEKLY RESET (Every Monday) */
+let lastReset = localStorage.getItem("lastReset");
+let today = new Date().toDateString();
+
+if(new Date().getDay() === 1 && lastReset !== today){
+localStorage.removeItem("weekly_done");
+localStorage.setItem("lastReset", today);
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+
+/* LOAD SAVED PLAN */
+let saved = localStorage.getItem(planKey);
+if(saved){
+try{
+let obj = JSON.parse(saved);
+planInput.value = obj.text || "";
+}catch{
+planInput.value = saved;
+}
+}
+
+/* AUTO SAVE PLAN */
+planInput.addEventListener("input", ()=>{
+  if(planInput.value.trim() === ""){
+    localStorage.removeItem(planKey);
+  } else {
+    localStorage.setItem(planKey, planInput.value);
+  }
+});
+
+/* LOAD DATA */
+loadActivities();
+loadSteps();
+updateDashboard();
+});
+
+function viewPlan(){
+window.location = "show_plan.html";
+} 
+
+</script>
+</body>
+</html>

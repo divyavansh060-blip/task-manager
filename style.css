@@ -1,0 +1,167 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: "Poppins", Arial, sans-serif;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(135deg, 
+        #ff6a00, 
+        #ee0979, 
+        #733bac, 
+        #00c6ff);
+    background-size: 400% 400%;
+    animation: gradientMove 10s ease infinite;
+}
+
+/* Background animation */
+@keyframes gradientMove{
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+}
+
+.container{
+    background: rgba(255,255,255,0.95);
+    width:380px;
+    padding:25px;
+    border-radius:18px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+}
+
+/* Header */
+header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+header h2{
+    font-size:22px;
+    background: linear-gradient(45deg,#ff512f,#dd2476);
+    -webkit-background-clip:text;
+    color:transparent;
+}
+
+.back{
+    text-decoration:none;
+    font-size:14px;
+    font-weight:600;
+    color:#7f00ff;
+}
+
+/* Input area */
+.input-area{
+    display:flex;
+    gap:10px;
+}
+
+input{
+    flex:1;
+    padding:12px;
+    border-radius:10px;
+    border:2px solid #ddd;
+    outline:none;
+    font-size:15px;
+    transition:0.3s;
+}
+
+input:focus{
+    border-color:#7f00ff;
+}
+
+/* Button */
+button{
+    padding:12px 18px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    color:white;
+    background: linear-gradient(45deg,#00c6ff,#0072ff);
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.05);
+}
+
+/* Task list */
+ul{
+    margin-top:20px;
+}
+
+ul li{
+    list-style:none;
+    padding:12px;
+    border-radius:12px;
+    margin-bottom:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background: linear-gradient(45deg,#fdfbfb,#ebedee);
+    box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+/* Completed task */
+ul li.done{
+    text-decoration:line-through;
+    opacity:0.6;
+}
+
+/* Icons */
+.actions span{
+    cursor:pointer;
+    font-size:18px;
+    margin-left:10px;
+    transition:0.3s;
+}
+
+.actions span:hover{
+    transform:scale(1.2);
+}
+.social {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    font-size: 15px;
+    border: none;
+    border-radius: 6px;
+    color: white;              /* 🔥 WHITE TEXT */
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Platform colors */
+.google {
+    background-color: #db4437;
+}
+
+.linkedin {
+    background-color: #0077b5;
+}
+
+.twitter {
+    background-color: #1da1f2;
+}
+
+.github {
+    background-color: #24292e;
+}
+
+/* Hover effect */
+.social:hover {
+    opacity: 0.85;
+}
